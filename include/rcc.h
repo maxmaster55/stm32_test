@@ -401,7 +401,6 @@ typedef union
         uint32_t PINRSTF     :1;
         uint32_t PORRSTF     :1;
         uint32_t SFTRSTF     :1;
-        uint32_t PORRSTF     :1;
         uint32_t IWDGRSTF    :1;
         uint32_t WWDGRSTF    :1;
         uint32_t LPWRRSTF    :1;
