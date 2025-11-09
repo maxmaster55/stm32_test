@@ -17,17 +17,13 @@ int main(void) {
     rcc_ctrlClk(RCC_CLK_PLL, RCC_CLK_ON);
     rcc_set_SysTick(RCC_CLK_PLL);
 
-    //rcc_ctrlClk(RCC_CLK_HSI, RCC_CLK_OFF);
     volatile int x = 10;
     volatile int y = 20;
     volatile z = x+y;
-    x++;
-
     
-    // set PC13 to output mode
+    
     while (1) {
-        // toggle PC13
-        for (volatile int i = 0; i < 1000000; i++);
+      x++;
     }
     return 0;
 }
