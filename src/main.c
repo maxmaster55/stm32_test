@@ -4,11 +4,13 @@
 
 rcc_PLL_config_t pll_cfg = {
   .src   = PLL_HSI_SRC,  // HSI = 16 MHz
-  .M_val = 16,
-  .N_val = 336,
-  .P_val = 2,           
-  .Q_val = 7
+  .M_val = 8,
+  .N_val = 193,
+  .P_val = 6,
+  .Q_val = 4
 };
+
+
 int main(void) {
 
 

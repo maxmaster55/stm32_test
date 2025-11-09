@@ -15,6 +15,8 @@ rcc_return_t rcc_set_SysTick(rcc_clktype_t rcc_type){
             while (RCC->CFGR.bits.SWS != 1); // wait untill ready
             break;
         case RCC_CLK_PLL:
+        *(uint32_t*)((0x40000000UL + 0x00020000UL) + 0x3C00UL) &= ~0b111;
+        *(uint32_t*)((0x40000000UL + 0x00020000UL) + 0x3C00UL) |= (2 & 0b111);
             RCC->CFGR.bits.SW = 2;
             while (RCC->CFGR.bits.SWS != 2); // wait untill ready
             break;
