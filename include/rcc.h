@@ -1,3 +1,5 @@
+#pragma once
+
 #include "rcc_cfg.h"
 
 #include <stdint.h>
@@ -9,18 +11,19 @@ typedef union
     struct
     {
         uint32_t HSION      :1;
-        uint32_t HSIRDY    :1;
+        uint32_t HSIRDY     :1;
         uint32_t res0       :1;
         uint32_t HSITRIM    :5;
         uint32_t HSICAL     :8;
-        uint32_t HSEON     :1;
-        uint32_t HSERDY    :1;
-        uint32_t HSEBYP    :1;
-        uint32_t CSSON     :1;
+        uint32_t HSEON      :1;
+        uint32_t HSERDY     :1;
+        uint32_t HSEBYP     :1;
+        uint32_t CSSON      :1;
         uint32_t res1       :4;
-        uint32_t PLLRDY     :1;            
-        uint32_t PLLI2SON  :1;
-        uint32_t PLLI2SRDY :1;
+        uint32_t PLLON      :1;
+        uint32_t PLLRDY     :1;
+        uint32_t PLLI2SON   :1;
+        uint32_t PLLI2SRDY  :1;
         uint32_t res2       :4;
     } bits;
 
@@ -496,7 +499,6 @@ typedef struct
 
 #define RCC_BASE            (0x40023800UL)
 
-volatile rcc_RegDef_t *RCC = (rcc_RegDef_t *) RCC_BASE;
 
 
 
