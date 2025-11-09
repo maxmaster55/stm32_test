@@ -35,14 +35,15 @@ typedef union
     uint32_t reg;
     struct
     {
-        uint32_t PLLM   : 6; 
-        uint32_t PLLN   : 9; 
-        uint32_t PLLP   : 2; 
-        uint32_t res0   : 3;
-        uint32_t PLLSRC : 1; 
-        uint32_t res1   : 1; 
-        uint32_t PLLQ   : 4; 
-        uint32_t res2   : 4; 
+        uint32_t PLLM   : 6;
+        uint32_t PLLN   : 9;
+        uint32_t res0   : 1;
+        uint32_t PLLP   : 2;
+        uint32_t res1   : 4;
+        uint32_t PLLSRC : 1;
+        uint32_t res2   : 1;
+        uint32_t PLLQ   : 4;
+        uint32_t res3   : 4;
     } bits;
 } rcc_PLLCFGR_t;
 
@@ -500,9 +501,10 @@ typedef struct
 #define RCC_BASE            (0x40023800UL)
 
 
-
-
-
+typedef enum{
+    RCC_RES_OK,
+    RCC_RES_NOK,
+} rcc_return_t;
 
 
 typedef enum {
@@ -517,12 +519,24 @@ typedef enum {
 } rcc_clkstate_t;
 
 
+typedef enum {
+    PLL_HSI_SRC,
+    PLL_HSE_SRC,
+} rcc_PLL_src_t;
 
 
-void rcc_set_SysTick(rcc_clktype_t rcc);
+typedef struct{
+    rcc_PLL_src_t src;
+    uint8_t M_val;
+    uint16_t N_val;
+    uint8_t Q_val;
+    uint8_t P_val;
+} rcc_PLL_config_t;
 
-void rcc_ctrlClk(rcc_clktype_t rcc, rcc_clkstate_t state);
+rcc_return_t rcc_set_SysTick(rcc_clktype_t rcc);
 
-void rcc_PLL_config();
+rcc_return_t rcc_ctrlClk(rcc_clktype_t rcc, rcc_clkstate_t state);
 
-void rcc_En_clk_preiph();
+rcc_return_t rcc_PLL_config(rcc_PLL_config_t config);
+
+rcc_return_t rcc_En_clk_preiph();
