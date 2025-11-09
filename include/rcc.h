@@ -9,18 +9,18 @@ typedef union
     struct
     {
         uint32_t HSION      :1;
-        uint32_t HSI_RDY    :1;
+        uint32_t HSIRDY    :1;
         uint32_t res0       :1;
         uint32_t HSITRIM    :5;
         uint32_t HSICAL     :8;
-        uint32_t HSE_ON     :1;
-        uint32_t HSE_RDY    :1;
-        uint32_t HSE_BYP    :1;
-        uint32_t CSS_ON     :1;
+        uint32_t HSEON     :1;
+        uint32_t HSERDY    :1;
+        uint32_t HSEBYP    :1;
+        uint32_t CSSON     :1;
         uint32_t res1       :4;
         uint32_t PLLRDY     :1;            
-        uint32_t PLLI2S_ON  :1;
-        uint32_t PLLI2S_RDY :1;
+        uint32_t PLLI2SON  :1;
+        uint32_t PLLI2SRDY :1;
         uint32_t res2       :4;
     } bits;
 
@@ -494,8 +494,10 @@ typedef struct
     volatile uint32_t DCKCFGR2;         /* 0x98 */
 } rcc_RegDef_t;
 
-#define RCC                 ((RCC_RegDef_t*)RCC_BASE_ADDRESS)
 
+#define RCC_BASE            (0x40023800UL)
+
+volatile rcc_RegDef_t *RCC = (rcc_RegDef_t *) RCC_BASE;
 
 
 
