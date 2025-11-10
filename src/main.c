@@ -1,5 +1,16 @@
 #include <rcc.h>
 
+#define RCC_BASE        0x40023800UL
+#define GPIOC_BASE      0x40020800UL
+
+#define GPIOC_MODER     (*(volatile unsigned long *)(GPIOC_BASE + 0x00))
+#define GPIOC_ODR       (*(volatile unsigned long *)(GPIOC_BASE + 0x14))
+#define LED_PIN 13
+
+
+void delay(void) {
+    for (volatile int i = 0; i < 500000; i++);
+}
 
 
 rcc_PLL_config_t pll_cfg = {
@@ -14,18 +25,17 @@ rcc_PLL_config_t pll_cfg = {
 int main(void) {
 
 
-    rcc_ctrlClk(RCC_CLK_HSI, RCC_CLK_ON);
-    volatile rcc_return_t ret = rcc_PLL_config(pll_cfg);
-    rcc_ctrlClk(RCC_CLK_PLL, RCC_CLK_ON);
-    rcc_set_SysTick(RCC_CLK_PLL);
+    // enable GPIO Clock
+    rcc_En_clk_preiph(RCC_GPIOC);
 
-    volatile int x = 10;
-    volatile int y = 20;
-    volatile z = x+y;
-    
-    
-    while (1) {
-      x++;
+    // Set PC13 as output (01)
+    GPIOC_MODER &= ~(3 << (LED_PIN * 2));  // Clear mode bits
+    GPIOC_MODER |=  (1 << (LED_PIN * 2));  // Set as output
+
+    while (1) { 
+        // toggle LED
+        GPIOC_ODR ^= (1 << LED_PIN);
+        delay();
     }
     return 0;
 }

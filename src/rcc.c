@@ -2,7 +2,14 @@
 
 volatile rcc_RegDef_t *RCC = (rcc_RegDef_t *) RCC_BASE;
 
-
+void test(){
+    RCC->CIR.bits.LSIRDYIE = 1;
+    RCC->AHB1RSTR.bits.GPIOARST = 1;
+    RCC->AHB1RSTR.bits.GPIOBRST = 1;
+    RCC->AHB1RSTR.bits.GPIOCRST = 1;
+    RCC->AHB1RSTR.bits.GPIODRST = 1;
+    RCC->AHB2RSTR.bits.OTGFSRST = 1;
+}
 
 rcc_return_t rcc_set_SysTick(rcc_clktype_t rcc_type){
     switch (rcc_type) {
@@ -15,8 +22,8 @@ rcc_return_t rcc_set_SysTick(rcc_clktype_t rcc_type){
             while (RCC->CFGR.bits.SWS != 1); // wait untill ready
             break;
         case RCC_CLK_PLL:
-        *(uint32_t*)((0x40000000UL + 0x00020000UL) + 0x3C00UL) &= ~0b111;
-        *(uint32_t*)((0x40000000UL + 0x00020000UL) + 0x3C00UL) |= (2 & 0b111);
+            *(uint32_t*)((0x40000000UL + 0x00020000UL) + 0x3C00UL) &= ~0b111;
+            *(uint32_t*)((0x40000000UL + 0x00020000UL) + 0x3C00UL) |= (2 & 0b111);
             RCC->CFGR.bits.SW = 2;
             while (RCC->CFGR.bits.SWS != 2); // wait untill ready
             break;
@@ -80,3 +87,37 @@ rcc_return_t rcc_PLL_config(rcc_PLL_config_t config){
     return RCC_RES_OK;
 }
 
+
+#define RCC_AHB1ENR     (*(volatile unsigned long *)(RCC_BASE + 0x30))
+
+
+rcc_return_t rcc_En_clk_preiph(rcc_Peripheral_t periph){
+    uint8_t bit = RCC_GET_BIT(periph);
+    uint8_t bus = RCC_GET_BUS(periph);
+    uint32_t ret_reg = 0;
+    switch (bus) {
+        case BUS_AHB1:{
+        RCC->AHB1ENR.reg |= (1 << bit);
+        ret_reg = RCC->AHB1ENR.reg;
+        break;
+        }
+        case BUS_AHB2: 
+        RCC->AHB2ENR.reg |= (1 << bit); 
+        ret_reg = RCC->AHB2ENR.reg;
+        break;
+        case BUS_APB1: 
+        RCC->APB1ENR.reg |= (1 << bit);
+        ret_reg = RCC->APB1ENR.reg;
+        break;
+        case BUS_APB2:
+        RCC->APB2ENR.reg |= (1 << bit);
+        ret_reg = RCC->APB2ENR.reg;
+        break;
+    }
+
+    // check if the bit is set
+    if (ret_reg & (1 << bit))
+        return RCC_RES_OK;
+    
+    return RCC_RES_NOK; // something went wrong
+}
