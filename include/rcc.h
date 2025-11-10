@@ -79,7 +79,7 @@ typedef union
         uint32_t HSERDYF     :1;
         uint32_t PLLRDYF     :1;
         uint32_t PLLI2SRDYF  :1;
-        uint32_t res0        :2;
+        uint32_t res0        :1;
         uint32_t CSSF        :1;
         uint32_t LSIRDYIE    :1;
         uint32_t LSERDYIE    :1;
@@ -107,9 +107,9 @@ typedef union
     uint32_t reg;
     struct
     {
-        uint32_t GBIOARST   :1;
-        uint32_t GBIOBRST   :1;
-        uint32_t GBIOCRST   :1;
+        uint32_t GPIOARST   :1;
+        uint32_t GPIOBRST   :1;
+        uint32_t GPIOCRST   :1;
         uint32_t GPIODRST   :1;
         uint32_t GPIOERST   :1;
         uint32_t res0       :2;
@@ -194,22 +194,22 @@ typedef union
 
 typedef union
 {
-    uint32_t reg;
+    volatile uint32_t reg;
     struct
     {
-        uint32_t GPIOAEN    :1;
-        uint32_t GPIOBEN    :1;
-        uint32_t GPIOCEN    :1;
-        uint32_t GPIODEN    :1;
-        uint32_t GPIOEEN    :1;
-        uint32_t res0       :2;
-        uint32_t GPIOHEN    :1;
-        uint32_t res1       :4;
-        uint32_t CRCEN      :1;
-        uint32_t res2       :8;
-        uint32_t DMA1EN     :1;
-        uint32_t DMA2EN     :1;
-        uint32_t res3       :9;
+        volatile uint32_t GPIOAEN    :1;
+        volatile uint32_t GPIOBEN    :1;
+        volatile uint32_t GPIOCEN    :1;
+        volatile uint32_t GPIODEN    :1;
+        volatile uint32_t GPIOEEN    :1;
+        volatile uint32_t res0       :2;
+        volatile uint32_t GPIOHEN    :1;
+        volatile uint32_t res1       :4;
+        volatile uint32_t CRCEN      :1;
+        volatile uint32_t res2       :8;
+        volatile uint32_t DMA1EN     :1;
+        volatile uint32_t DMA2EN     :1;
+        volatile uint32_t res3       :9;
     } bits;
 
 } rcc_AHB1ENR_t;
@@ -533,10 +533,63 @@ typedef struct{
     uint8_t P_val;
 } rcc_PLL_config_t;
 
+#define BUS_AHB1  (0)
+#define BUS_AHB2  (1)
+#define BUS_APB1  (2)
+#define BUS_APB2  (3)
+
+#define RCC_BUS_ENCODE(bus, bit)    (((bus) << 16) | (bit))
+#define RCC_GET_BUS(x)              ((uint32_t)((x) >> 16))
+#define RCC_GET_BIT(x)              ((uint32_t)((x) & 0xFFFF))
+
+
+typedef enum{
+  // AHB1
+    RCC_GPIOA = RCC_BUS_ENCODE(BUS_AHB1, 0),
+    RCC_GPIOB = RCC_BUS_ENCODE(BUS_AHB1, 1),
+    RCC_GPIOC = RCC_BUS_ENCODE(BUS_AHB1, 2),
+    RCC_GPIOD = RCC_BUS_ENCODE(BUS_AHB1, 3),
+    RCC_GPIOE = RCC_BUS_ENCODE(BUS_AHB1, 4),
+    RCC_GPIOH = RCC_BUS_ENCODE(BUS_AHB1, 7),
+    RCC_CRC   = RCC_BUS_ENCODE(BUS_AHB1, 12),
+    RCC_DMA1  = RCC_BUS_ENCODE(BUS_AHB1, 21),
+    RCC_DMA2  = RCC_BUS_ENCODE(BUS_AHB1, 22),
+    // AHB2
+    RCC_OTGFS = RCC_BUS_ENCODE(BUS_AHB2, 7),
+    // APB1
+    RRC_TIMER_2 = RCC_BUS_ENCODE(BUS_APB1, 0),
+    RRC_TIMER_3 = RCC_BUS_ENCODE(BUS_APB1, 1),
+    RRC_TIMER_4 = RCC_BUS_ENCODE(BUS_APB1, 2),
+    RRC_TIMER_5 = RCC_BUS_ENCODE(BUS_APB1, 3),
+    RRC_WWDG    = RCC_BUS_ENCODE(BUS_APB1, 11),
+    RRC_SPI2    = RCC_BUS_ENCODE(BUS_APB1, 14),
+    RRC_SPI3    = RCC_BUS_ENCODE(BUS_APB1, 15),
+    RRC_USART2  = RCC_BUS_ENCODE(BUS_APB1, 17),
+    RRC_I2C1    = RCC_BUS_ENCODE(BUS_APB1, 21),
+    RRC_I2C2    = RCC_BUS_ENCODE(BUS_APB1, 22),
+    RRC_I2C3    = RCC_BUS_ENCODE(BUS_APB1, 23),
+    RRC_PWR     = RCC_BUS_ENCODE(BUS_APB1, 28),
+    // APB2
+    RRC_TIMER_1 = RCC_BUS_ENCODE(BUS_APB2, 0),
+    RRC_USART1  = RCC_BUS_ENCODE(BUS_APB2, 4),
+    RRC_USART6  = RCC_BUS_ENCODE(BUS_APB2, 5),
+    RRC_ADC1    = RCC_BUS_ENCODE(BUS_APB2, 8),
+    RRC_SDIO    = RCC_BUS_ENCODE(BUS_APB2, 11),
+    RRC_SPI1    = RCC_BUS_ENCODE(BUS_APB2, 12),
+    RRC_SPI4    = RCC_BUS_ENCODE(BUS_APB2, 13),
+    RRC_SYSCFG  = RCC_BUS_ENCODE(BUS_APB2, 14),
+    RRC_TIMER_9 = RCC_BUS_ENCODE(BUS_APB2, 16),
+    RRC_TIMER_10= RCC_BUS_ENCODE(BUS_APB2, 17),
+    RRC_TIMER_11= RCC_BUS_ENCODE(BUS_APB2, 18)
+}rcc_Peripheral_t;
+
+
 rcc_return_t rcc_set_SysTick(rcc_clktype_t rcc);
 
 rcc_return_t rcc_ctrlClk(rcc_clktype_t rcc, rcc_clkstate_t state);
 
 rcc_return_t rcc_PLL_config(rcc_PLL_config_t config);
 
-rcc_return_t rcc_En_clk_preiph();
+rcc_return_t rcc_En_clk_preiph(rcc_Peripheral_t periph);
+
+void test();
