@@ -592,4 +592,8 @@ rcc_return_t rcc_PLL_config(rcc_PLL_config_t config);
 
 rcc_return_t rcc_En_clk_preiph(rcc_Peripheral_t periph);
 
+rcc_return_t rcc_Dis_clk_preiph(rcc_Peripheral_t periph);
+
+rcc_return_t rcc_reset_periph(rcc_Peripheral_t periph);
+
 void test();

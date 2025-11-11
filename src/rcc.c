@@ -121,3 +121,70 @@ rcc_return_t rcc_En_clk_preiph(rcc_Peripheral_t periph){
     
     return RCC_RES_NOK; // something went wrong
 }
+
+
+rcc_return_t rcc_Dis_clk_preiph(rcc_Peripheral_t periph){
+        uint8_t bit = RCC_GET_BIT(periph);
+    uint8_t bus = RCC_GET_BUS(periph);
+    uint32_t ret_reg = 0;
+    switch (bus) {
+        case BUS_AHB1:{
+        RCC->AHB1ENR.reg &= ~(1 << bit);
+        ret_reg = RCC->AHB1ENR.reg;
+        break;
+        }
+        case BUS_AHB2: 
+        RCC->AHB2ENR.reg &= ~(1 << bit); 
+        ret_reg = RCC->AHB2ENR.reg;
+        break;
+        case BUS_APB1: 
+        RCC->APB1ENR.reg &= ~(1 << bit);
+        ret_reg = RCC->APB1ENR.reg;
+        break;
+        case BUS_APB2:
+        RCC->APB2ENR.reg &= ~(1 << bit);
+        ret_reg = RCC->APB2ENR.reg;
+        break;
+    }
+
+    // check if the bit is cleared
+    if (!(ret_reg & (1 << bit)))
+        return RCC_RES_OK;
+    
+    return RCC_RES_NOK; // something went wrong
+}
+
+rcc_return_t rcc_reset_periph(rcc_Peripheral_t periph){
+    uint8_t bit = RCC_GET_BIT(periph);
+    uint8_t bus = RCC_GET_BUS(periph);
+    uint32_t ret_reg = 0;
+    switch (bus) {
+        case BUS_AHB1:{
+        RCC->AHB1RSTR.reg |= (1 << bit); // set reset bit
+        RCC->AHB1RSTR.reg &= ~(1 << bit); // clear reset bit
+        ret_reg = RCC->AHB1RSTR.reg;
+        break;
+        }
+        case BUS_AHB2: 
+        RCC->AHB2RSTR.reg |= (1 << bit);
+        RCC->AHB2RSTR.reg &= ~(1 << bit);
+        ret_reg = RCC->AHB2RSTR.reg;
+        break;
+        case BUS_APB1: 
+        RCC->APB1RSTR.reg |= (1 << bit);
+        RCC->APB1RSTR.reg &= ~(1 << bit);
+        ret_reg = RCC->APB1RSTR.reg;
+        break;
+        case BUS_APB2:
+        RCC->APB2RSTR.reg |= (1 << bit);
+        RCC->APB2RSTR.reg &= ~(1 << bit);
+        ret_reg = RCC->APB2RSTR.reg;
+        break;
+    }
+
+    // check if the bit is cleared
+    if (!(ret_reg & (1 << bit)))
+        return RCC_RES_OK;
+    
+    return RCC_RES_NOK; // something went wrong
+}
