@@ -31,6 +31,20 @@ typedef struct {
     volatile uint32_t AFR[2];   // GPIO alternate function registers,     Address offset: 0x20-0x24
 } GPIO_RegDef_t;
 
+
+typedef struct
+{  
+    GPIO_RegDef_t *port;
+    uint32_t pin;
+    uint8_t mode;
+    uint8_t pull;
+    uint8_t alt_function;
+    uint8_t speed;
+    uint8_t output_type;
+} GPIO_PinConfig_t;
+
+
+
 #define GPIOA     ((GPIO_RegDef_t *) GPIOA_BASE)
 #define GPIOB     ((GPIO_RegDef_t *) GPIOB_BASE)
 #define GPIOC     ((GPIO_RegDef_t *) GPIOC_BASE)
@@ -39,9 +53,12 @@ typedef struct {
 #define GPIOH     ((GPIO_RegDef_t *) GPIOH_BASE)
 
 
+
+// pin mask to pin number
 #define GPIO_MASK_TO_PIN(mask) __builtin_ctz(mask)
 
 
+// GPIO Pin definitions
 #define    GPIO_PIN_0      (0x0001)
 #define    GPIO_PIN_1      (0x0002)
 #define    GPIO_PIN_2      (0x0004)
@@ -60,16 +77,20 @@ typedef struct {
 #define    GPIO_PIN_15     (0x8000)
 
 
-
+// GPIO Mode definitions
 #define GPIO_MODE_INPUT        (0x00)
 #define GPIO_MODE_OUTPUT       (0x01)
 #define GPIO_MODE_ALTFN        (0x02)
 #define GPIO_MODE_ANALOG       (0x03)
 
+
+// GPIO Pull-Up/Pull-Down definitions
 #define GPIO_PULL_NO          (0x00)
-#define GPIO_PILL_UP          (0x01)
+#define GPIO_PULL_UP          (0x01)
 #define GPIO_PULL_DOWN        (0x02)
 
+
+// GPIO Alternate Function definitions
 #define GPIO_AF0_SYSTEM      (0x00)
 #define GPIO_AF1_TIM1_2      (0x01)
 #define GPIO_AF2_TIM3_5      (0x02)
@@ -88,6 +109,18 @@ typedef struct {
 #define GPIO_AF15_EVENTOUT   (0x0F)
 
 
+// GPIO Speed definitions
+#define GPIO_SPEED_LOW       (0x00)
+#define GPIO_SPEED_MEDIUM    (0x01)
+#define GPIO_SPEED_FAST      (0x02)
+#define GPIO_SPEED_HIGH      (0x03)
+
+// GPIO Output Type definitions
+#define GPIO_OUTPUT_PUSHPULL    (0x00)
+#define GPIO_OUTPUT_OPENDRAIN   (0x01)
+
+
+
 typedef enum {
     GPIO_RES_OK,
     GPIO_RES_NOK,
@@ -99,13 +132,10 @@ typedef enum {
 /**
  * @brief Initialize GPIO pin
  * 
- * @param port use GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOH defines
- * @param pin use GPIO_PIN_x defines
- * @param mode use GPIO_MODE_x defines
- * @param pull use GPIO_PULL_x defines
+ * @param pin_cfg pointer to GPIO_PinConfig_t structure
  * @return gpio_return_t 
  */
-gpio_return_t gpio_init(GPIO_RegDef_t *port, uint16_t pin, uint8_t mode, uint8_t pull);
+gpio_return_t gpio_init(GPIO_PinConfig_t *pin_cfg);
 
 /**
  * @brief Write value to GPIO pin
