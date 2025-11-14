@@ -3,7 +3,7 @@
 
 
 
-
+// for just one pin
 gpio_return_t gpio_init(GPIO_PinConfig_t *pin_cfg){
     if(pin_cfg == NULL || pin_cfg->port == NULL) return GPIO_RES_NOK;
 
@@ -15,6 +15,7 @@ gpio_return_t gpio_init(GPIO_PinConfig_t *pin_cfg){
 
     /* MODER: two bits per pin - clear then set */
     pin_cfg->port->MODER &= ~(0x03U << (pin_index * 2));
+    // bit insertion
     pin_cfg->port->MODER |= ((pin_cfg->mode & 0x03U) << (pin_index * 2));  /* set mode */
 
     /* PUPDR: two bits per pin - clear then set */
