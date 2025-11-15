@@ -175,3 +175,8 @@ gpio_return_t gpio_toggle(GPIO_RegDef_t *port, uint16_t pin);
  * @return gpio_return_t 
  */
 gpio_return_t gpio_set_alt_function(GPIO_RegDef_t *port, uint16_t pin, uint8_t alt_func);
+
+
+gpio_return_t gpio_set_port_value(GPIO_RegDef_t *port, uint16_t value);
+
+gpio_return_t gpio_get_port_value(GPIO_RegDef_t *port, uint16_t *value);

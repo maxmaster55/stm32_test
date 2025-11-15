@@ -15,6 +15,7 @@ gpio_return_t gpio_init(GPIO_PinConfig_t *pin_cfg){
 
     /* MODER: two bits per pin - clear then set */
     pin_cfg->port->MODER &= ~(0x03U << (pin_index * 2));
+    
     // bit insertion
     pin_cfg->port->MODER |= ((pin_cfg->mode & 0x03U) << (pin_index * 2));  /* set mode */
 
@@ -29,7 +30,7 @@ gpio_return_t gpio_init(GPIO_PinConfig_t *pin_cfg){
 gpio_return_t gpio_write(GPIO_RegDef_t *port, uint16_t pin, uint8_t value){
     if(port == NULL) return GPIO_RES_NOK;
     /* BSRR: lower half sets, upper half resets */
-    port->BSRR = (value) ? pin : (pin << 16);
+    port->BSRR = (value) ? pin : (pin << 16); // atopmic set
     return GPIO_RES_OK;
 }
 
@@ -41,7 +42,7 @@ gpio_return_t gpio_read(GPIO_RegDef_t *port, uint16_t pin, uint8_t *value){
 
 gpio_return_t gpio_toggle(GPIO_RegDef_t *port, uint16_t pin){
     if(port == NULL) return GPIO_RES_NOK;
-    port->ODR ^= pin;
+    port->ODR ^= pin; // not atomic
     return GPIO_RES_OK;
 }
 
@@ -54,5 +55,17 @@ gpio_return_t gpio_set_alt_function(GPIO_RegDef_t *port, uint16_t pin, uint8_t a
     port->AFR[reg] &= ~(0x0FU << shift);        /* clear 4 bits for that pin */
     port->AFR[reg] |= ((alt_func & 0x0FU) << shift);  /* set new alternate function */
 
+    return GPIO_RES_OK;
+}
+
+gpio_return_t gpio_set_port_value(GPIO_RegDef_t *port, uint16_t value){
+    if(port == NULL) return GPIO_RES_NOK;
+    port->ODR = value;
+    return GPIO_RES_OK;
+}
+
+gpio_return_t gpio_get_port_value(GPIO_RegDef_t *port, uint16_t *value){
+    if(port == NULL || value == NULL) return GPIO_RES_NOK;
+    *value = (uint16_t)(port->IDR & 0xFFFFU);
     return GPIO_RES_OK;
 }
