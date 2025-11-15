@@ -1,5 +1,4 @@
 #include "led_cfg.h"
-#include <MCAL/GPIO/gpio.h>
 
 typedef enum {
     LED_RETURN_OK,

@@ -1,4 +1,5 @@
 #include "HAL/LED/led.h"
+#include <MCAL/GPIO/gpio.h>
 
 
 extern led_config_t LED_cfg[];
