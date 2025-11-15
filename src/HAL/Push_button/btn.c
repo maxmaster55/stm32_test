@@ -10,7 +10,8 @@ uint8_t to_gpio_pull(resistance_type_t resistance) {
             return GPIO_PULL_UP;
         case BTN_RESISTANCE_PULLDOWN_INTERNAL:
             return GPIO_PULL_DOWN;
-        case BTN_RESISTANCE_EXTERNAL:
+        case BTN_RESISTANCE_PULLDOWN_EXTERNAL:
+        case BTN_RESISTANCE_PULLUP_EXTERNAL:
         case BTN_RESISTANCE_NO:
         default:
             return GPIO_PULL_NO;
@@ -59,9 +60,11 @@ btn_return_t btn_read_state(btn_name_t name, btn_state *state){
     switch (btn.pull)
     {
     case BTN_RESISTANCE_PULLUP_INTERNAL:
+    case BTN_RESISTANCE_PULLUP_EXTERNAL:
         *state = (value == 0) ? BTN_PRESSED : BTN_NOT_PRESSED;
         break;
     case BTN_RESISTANCE_PULLDOWN_INTERNAL:
+    case BTN_RESISTANCE_PULLDOWN_EXTERNAL:
         *state = (value == 1) ? BTN_PRESSED : BTN_NOT_PRESSED;
         break;
     default:
