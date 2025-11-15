@@ -7,7 +7,7 @@
 gpio_return_t gpio_init(GPIO_PinConfig_t *pin_cfg){
     if(pin_cfg == NULL || pin_cfg->port == NULL) return GPIO_RES_NOK;
 
-    uint8_t pin_index = GPIO_MASK_TO_PIN(pin_cfg->pin);
+    volatile uint8_t pin_index = GPIO_MASK_TO_PIN(pin_cfg->pin);
 
     /* OTYPER: single bit per pin */
     pin_cfg->port->OTYPER &= ~(1U << pin_index); /* clear output type */
@@ -30,7 +30,7 @@ gpio_return_t gpio_init(GPIO_PinConfig_t *pin_cfg){
 gpio_return_t gpio_write(GPIO_RegDef_t *port, uint16_t pin, uint8_t value){
     if(port == NULL) return GPIO_RES_NOK;
     /* BSRR: lower half sets, upper half resets */
-    port->BSRR = (value) ? pin : (pin << 16); // atopmic set
+    port->BSRR = (value) ? pin : (pin << 16); // atomic set
     return GPIO_RES_OK;
 }
 

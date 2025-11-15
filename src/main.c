@@ -1,36 +1,43 @@
 #include <MCAL/RCC/rcc.h>
 #include <MCAL/GPIO/gpio.h>
+#include <HAL/LED/led.h>
 
-
-#define LED_PIN 13
-
-
-GPIO_PinConfig_t led_pin_cfg = {
-    .port = GPIOA,
-    .pin = (1U << LED_PIN),
-    .mode = GPIO_MODE_OUTPUT,          // Output mode
-    .pull = GPIO_PULL_NO,          // No pull-up, no pull-down
-    .alt_function = GPIO_AF0_SYSTEM,  // Not used in output mode
-    .speed = GPIO_SPEED_HIGH,         // Medium speed
-    .output_type = GPIO_OUTPUT_PUSHPULL    // Push-pull
-};
-
-// TODO: test i2c 
 
 
 void delay(void) {
     for (volatile int i = 0; i < 500000; i++);
 }
 
+
+GPIO_PinConfig_t led_pin_cfg = {
+    .port = GPIOC,
+    .pin = GPIO_PIN_13,
+    .mode = GPIO_MODE_OUTPUT,
+    .pull = GPIO_PULL_NO,
+    .alt_function = 0x00,
+    .speed = 0x02,
+    .output_type = 0x00
+};
+
 int main(void) {
-    
 
-    int shift = 1;
-    while (1) {
-        // Turn on all pins in port A
-        GPIOA->ODR <<= shift;
 
-        delay();
+    // enable GPIO Clock
+    rcc_En_clk_preiph(RCC_GPIOA);
+    led_init();
+
+
+
+    while (1) { 
+        uint32_t led_mask = 0;
+        for (led_name_t led = LED_NAME_0; led < LED_NUM_MAX; led++) {
+            led_mask |= (1 << led);
+            led_Turn_on(led);
+            delay();
+            led_Turn_off(led);
+            delay();
+        }
     }
+
     return 0;
 }
