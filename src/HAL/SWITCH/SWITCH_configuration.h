@@ -1,0 +1,10 @@
+#ifndef SWITCH_CONFIGURATION_H_
+#define SWITCH_CONFIGURATION_H_
+
+typedef enum
+{
+    EMERGENCY_SW,
+    SWITHC_NUM,
+}SWITCH_NAMES_t;
+
+#endif // SWITCH_CONFIGURATION_H_
