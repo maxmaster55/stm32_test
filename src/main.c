@@ -1,5 +1,6 @@
 #include <MCAL/RCC/rcc.h>
 #include <MCAL/GPIO/gpio.h>
+#include <MCAL/NVIC/nvic.h>
 #include <HAL/7_Seg/seg_display.h>
 
 void delay(void)
@@ -13,7 +14,10 @@ int main(void)
     // enable GPIO Clock
     rcc_En_clk_preiph(RCC_GPIOA);
     segment_display_init();
-
+    NVIC_EnableIRQ(WWDG_IRQn);
+    //NVIC_SetPendingIRQ(WWDG_IRQn);
+    NVIC_DisableIRQ(WWDG_IRQn);
+    
     while (1)
     {
         for (int i = 0; i < 10; i++)
