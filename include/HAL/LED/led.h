@@ -1,3 +1,4 @@
+#pragma once
 #include "led_cfg.h"
 
 typedef enum {
