@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "nvic.h": "c",
-        "systick.h": "c"
-    }
-}
