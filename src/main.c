@@ -3,6 +3,9 @@
 #include <MCAL/NVIC/nvic.h>
 #include <HAL/7_Seg/seg_display.h>
 #include <MCAL/systick/systick.h>
+#include <HAL/C_LCD/lcd.h>
+
+#define CLK 16000000UL
 
 void delay(void)
 {
@@ -21,13 +24,20 @@ void WWDG_IRQHandler(void)
 
 }
 
-#define CLK 16000000UL
+
+
+lcd_cfg_t lcd_cfg = {
+    .port = GPIOA,
+    .d_pins = {GPIO_PIN_0, GPIO_PIN_1,
+                GPIO_PIN_2, GPIO_PIN_3},
+    .rs_pin = GPIO_PIN_4,
+    .rw_pin = GPIO_PIN_5,
+    .en_pin = GPIO_PIN_6
+};
 
 void do_smth(){
-    volatile int x = 10;
-    volatile int y = 10;
-    volatile int z = x + y;
-
+volatile static int x = 10;
+x += 1;
 }
 
 int main(void)
@@ -35,23 +45,16 @@ int main(void)
 
     // enable GPIO Clock
     rcc_En_clk_preiph(RCC_GPIOA);
-    segment_display_init();
-    NVIC_EnableIRQ(WWDG_IRQn);
-
-    systick_init(CLK, SYSTICK_PRESCALER_NO);
     
-    systick_configure_callback(do_smth);
-    systick_start();    
+
+    // lcd stuff
+    //lcd_init(&lcd_cfg);
+    
+
     while (1)
     {
-        for (int i = 0; i < 10; i++)
-        {
-            segment_write(SEGMENT_1, i);
-            //delay();
-            systick_wait(20);
-        }
-        //segment_en_dot(SEGMENT_1);
-        NVIC_SetPendingIRQ(WWDG_IRQn);
+        //lcd_write_char(&lcd_cfg, 'x');
+        systick_wait(1000);
     }
 
     return 0;
