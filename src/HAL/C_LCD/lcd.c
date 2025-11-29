@@ -148,10 +148,10 @@ lcd_ret_t lcd_write_char(lcd_cfg_t* lcd_cfg, char c){
 
 
 
-lcd_ret_t lcd_write_string(lcd_cfg_t* lcd, const char* str) {
+lcd_ret_t lcd_write_string(lcd_cfg_t* lcd_cfg, char* str){
 
     while(*str) {
-        lcd_write_char(lcd, *str++);
+        lcd_write_char(lcd_cfg, *str++);
     }
 
     return LCD_RET_OK;
