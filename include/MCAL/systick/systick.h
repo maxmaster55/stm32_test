@@ -34,7 +34,7 @@ typedef void (*nvic_callback_t) (void);
 
 systick_ret_t systick_init(uint64_t clock_val, systick_prescaler_t prescaler);
 systick_ret_t systick_configure_callback(nvic_callback_t callback);
-systick_ret_t systick_set_val(uint32_t val);
+systick_ret_t systick_set_val(uint32_t ms);
 systick_ret_t systick_wait(uint32_t ms);
 systick_ret_t systick_start();
 systick_ret_t systick_stop();

@@ -1,12 +1,12 @@
 #include <MCAL/systick/systick.h>
 
 volatile nvic_callback_t G_callback = NULL;
-volatile uint64_t G_ms_ticks = 0;
+volatile uint64_t G_ticks = 0;
 uint64_t G_clock_freq = 0;
 
 void SysTick_Handler(void)
 {
-    G_ms_ticks++;   // counts every 1ms
+    G_ticks++;   // counts every tick
     if (G_callback != NULL)
         G_callback();
 }
@@ -30,11 +30,6 @@ systick_ret_t systick_init(uint64_t clock_freq, systick_prescaler_t prescaler)
     // set global clock
     G_clock_freq = clock_freq;
 
-    // ✔ set LOAD once for 1ms resolution
-    uint32_t load = (clock_freq / 1000) - 1;
-    SYSTICK->LOAD = load;
-    SYSTICK->VAL = 0;
-
     return SYSTICK_OK;
 }
 
@@ -44,11 +39,28 @@ systick_ret_t systick_configure_callback(nvic_callback_t callback)
     return SYSTICK_OK;
 }
 
+
+systick_ret_t systick_set_val(uint32_t ms){
+    if (G_clock_freq == 0)
+        return SYSTICK_NOK; // make sure clock is set
+
+    // convert ms to ticks
+    uint64_t ticks = ((uint64_t)G_clock_freq * ms) / 1000;
+
+    // SysTick LOAD is 24-bit
+    if (ticks == 0 || ticks > 0xFFFFFF)
+        return SYSTICK_NOK;
+
+    SYSTICK->LOAD = (uint32_t)(ticks - 1);
+    SYSTICK->VAL  = 0; // reset current value
+    return SYSTICK_OK;
+}
+
 // blocking ms delay
 systick_ret_t systick_wait(uint32_t ms)
 {
-    uint64_t start = G_ms_ticks;
-    while ((G_ms_ticks - start) < ms);  // wait until ms passed
+    uint64_t start = G_ticks;
+    while ((G_ticks - start) < ms);  // wait until ms passed
     return SYSTICK_OK;
 }
 
