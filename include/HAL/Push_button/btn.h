@@ -9,7 +9,7 @@ typedef enum {
 typedef enum {
     BTN_PRESSED,
     BTN_NOT_PRESSED
-} btn_state;
+} btn_state_t;
 
 
 /**
@@ -26,4 +26,4 @@ btn_return_t btn_init();
  * @param state Pointer to store the button state (true for pressed, false for not pressed)
  * @return btn_return_t 
  */
-btn_return_t btn_read_state(btn_name_t name, btn_state *state);
+btn_return_t btn_read_state(btn_name_t name, btn_state_t *state);
