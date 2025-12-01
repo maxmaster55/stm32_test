@@ -21,9 +21,15 @@ sched_ret_t sched_start(){
             {
                 if (runnable_list[i] != NULL)
                 {
-                    if ((G_ticks % runnable_list[i]->every )== 0)
+                    uint32_t every = runnable_list[i]->every;
+                    uint32_t first = runnable_list[i]->first_delay;
+
+                    if (G_ticks >= first)
                     {
-                        runnable_list[i]->callback(runnable_list[i]->args);
+                        if ((G_ticks - first) % every == 0)
+                        {
+                            runnable_list[i]->callback(runnable_list[i]->args);
+                        }
                     }
                 }
             }
