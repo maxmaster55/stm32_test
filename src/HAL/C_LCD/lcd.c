@@ -64,7 +64,6 @@ void lcd_send_data_bit(lcd_cfg_t* lcd_cfg, uint8_t data)
 
 lcd_ret_t lcd_init(lcd_cfg_t* lcd_cfg)
 {
-    // -------- Initialize control pins --------
     GPIO_PinConfig_t cfg;
 
     cfg.port = lcd_cfg->port;
@@ -72,14 +71,13 @@ lcd_ret_t lcd_init(lcd_cfg_t* lcd_cfg)
     cfg.pull = GPIO_PULL_NO;
     cfg.alt_function = GPIO_AF0_SYSTEM;
     cfg.speed = GPIO_SPEED_FAST;
-    cfg.output_type = GPIO_MODE_OUTPUT;
-
+    cfg.output_type = GPIO_OUTPUT_PUSHPULL;
+    
     cfg.pin = lcd_cfg->rs_pin; gpio_init(&cfg);
     cfg.pin = lcd_cfg->rw_pin; gpio_init(&cfg);
     cfg.pin = lcd_cfg->en_pin; gpio_init(&cfg);
 
 #if LCD_MODE == LCD_MODE_4
-    // -------- Init D4..D7 --------
     for (uint8_t i = 0; i < 4; i++)
     {
         cfg.pin = lcd_cfg->d_pins[i];
@@ -95,21 +93,9 @@ lcd_ret_t lcd_init(lcd_cfg_t* lcd_cfg)
     }
 #endif
 
-    // -------- Wait power-up --------
     systick_wait(40);
 
 #if LCD_MODE == LCD_MODE_4
-    //
-    // *** Proper 4-bit init sequence ***
-    // This sequence is mandatory for HD44780
-    //
-
-    gpio_write(lcd_cfg->port, lcd_cfg->d_pins[0], 1);
-    gpio_write(lcd_cfg->port, lcd_cfg->d_pins[1], 1);
-    gpio_write(lcd_cfg->port, lcd_cfg->d_pins[2], 1);
-    gpio_write(lcd_cfg->port, lcd_cfg->d_pins[3], 1);
-    systick_wait(10000);
-
     gpio_write(lcd_cfg->port, lcd_cfg->rs_pin, 0);
     gpio_write(lcd_cfg->port, lcd_cfg->rw_pin, 0);
 
@@ -123,13 +109,12 @@ lcd_ret_t lcd_init(lcd_cfg_t* lcd_cfg)
     lcd_write_nibble(lcd_cfg, 0x03);
     systick_wait(1);
 
-    // Switch to **4-bit mode**
+    // Switch to 4-bit mode
     lcd_write_nibble(lcd_cfg, 0x02);
     systick_wait(1);
 
 #endif
 
-    // -------- Final function set --------
 #if LCD_MODE == LCD_MODE_4
     lcd_send_cmd_bit(lcd_cfg, 0x28);   // 4-bit, 2-line, 5x8 font
 #elif LCD_MODE == LCD_MODE_8
@@ -146,19 +131,69 @@ lcd_ret_t lcd_init(lcd_cfg_t* lcd_cfg)
     lcd_send_cmd_bit(lcd_cfg, 0x06);   // Entry mode (increment)
     systick_wait(1);
 
-    // -------- Test write --------
-    lcd_send_data_bit(lcd_cfg, 'a');
-    lcd_send_data_bit(lcd_cfg, 'a');
-    lcd_send_data_bit(lcd_cfg, 'a');
+    return LCD_RET_OK;
+}
+
+
+lcd_ret_t lcd_write_char(lcd_cfg_t* lcd_cfg, char c){
+    gpio_write(lcd_cfg->port, lcd_cfg->rs_pin, LCD_RS_DATA);
+    gpio_write(lcd_cfg->port, lcd_cfg->rw_pin, LCD_RW_WRITE);
+
+
+#if LCD_MODE == LCD_MODE_8
+    for (uint8_t i = 0; i < LCD_MODE_8; i++)
+    {
+        uint8_t d = (c >> i) & 1;
+        gpio_write(lcd_cfg->port, lcd_cfg->d_pins[i], d);
+    }
+    
+#else
+    lcd_write_nibble(lcd_cfg, c >> 4);  // high nibble
+    lcd_write_nibble(lcd_cfg, c & 0x0F); // low nibble
+#endif
+}
+
+
+
+lcd_ret_t lcd_write_string(lcd_cfg_t* lcd, char* str) {
+
+    while(*str) {
+        lcd_write_char(lcd, *str++);
+    }
 
     return LCD_RET_OK;
 }
 
 
-lcd_ret_t lcd_write_char(lcd_cfg_t* lcd_cfg, char c);
-lcd_ret_t lcd_write_string(lcd_cfg_t* lcd_cfg, char* str);
-lcd_ret_t lcd_clear_lcd(lcd_cfg_t* lcd_cfg);
-lcd_ret_t lcd_set_cursor_pos(lcd_cfg_t* lcd_cfg, uint8_t row, uint8_t col);
-lcd_ret_t lcd_save_custom_char(lcd_cfg_t* lcd_cfg, uint8_t* custom, uint8_t index);
+lcd_ret_t lcd_clear_lcd(lcd_cfg_t* lcd_cfg){
+#if LCD_MODE == LCD_MODE_8
+    lcd_send_cmd(lcd_cfg, 0x01);
+    systick_wait(1);
+#else
+// later
+#endif
+    return LCD_RET_OK;
+}
+
+
+
+lcd_ret_t lcd_set_cursor_pos(lcd_cfg_t* lcd_cfg, uint8_t row, uint8_t col){
+#if LCD_MODE == LCD_MODE_8
+
+
+#else
+// later
+#endif
+}
+
+
+lcd_ret_t lcd_save_custom_char(lcd_cfg_t* lcd_cfg, uint8_t* custom, uint8_t index){
+#if LCD_MODE == LCD_MODE_8
+
+
+#else
+// later
+#endif
+}
 
 

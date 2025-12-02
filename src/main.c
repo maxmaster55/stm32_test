@@ -21,28 +21,17 @@ lcd_cfg_t lcd_cfg = {
 
 int main(void)
 {
-    GPIO_PinConfig_t cfg;
-
-    cfg.port = GPIOA;
-    cfg.mode = GPIO_MODE_OUTPUT;
-    cfg.pull = GPIO_PULL_NO;
-    cfg.alt_function = GPIO_AF0_SYSTEM;
-    cfg.speed = GPIO_SPEED_FAST;
-    cfg.output_type = GPIO_MODE_OUTPUT;
-    cfg.pin = GPIO_PIN_3;
 
     // enable GPIO Clock
     rcc_En_clk_preiph(RCC_GPIOA);
 
-    gpio_init(&cfg);
-    gpio_write(GPIOA, GPIO_PIN_3, 1);
-
-    // systick_init(CLK, SYSTICK_PRESCALER_NO);
-    // systick_set_val(1);
-    // systick_start();
+    systick_init(CLK, SYSTICK_PRESCALER_NO);
+    systick_set_val(1);
+    systick_start();
 
     // btn_init();
-    // lcd_init(&lcd_cfg);
+    lcd_init(&lcd_cfg);
+    lcd_write_string(&lcd_cfg, "Youssef Elkashef");
     // sched_init(1);
     // sched_start();
     
