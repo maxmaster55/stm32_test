@@ -1,6 +1,13 @@
 #include <MCAL/systick/systick.h>
 #include <HAL/C_LCD/lcd.h>
 
+// scheduler stuff
+
+
+
+
+// helpers 
+
 static void lcd_pulse_en(lcd_cfg_t* lcd_cfg)
 {
     gpio_write(lcd_cfg->port, lcd_cfg->en_pin, 1);
@@ -61,6 +68,8 @@ void lcd_send_data_bit(lcd_cfg_t* lcd_cfg, uint8_t data)
     lcd_write_byte(lcd_cfg, data);
 }
 
+
+// api
 
 lcd_ret_t lcd_init(lcd_cfg_t* lcd_cfg)
 {
@@ -166,24 +175,39 @@ lcd_ret_t lcd_write_string(lcd_cfg_t* lcd, char* str) {
 
 
 lcd_ret_t lcd_clear_lcd(lcd_cfg_t* lcd_cfg){
-#if LCD_MODE == LCD_MODE_8
-    lcd_send_cmd(lcd_cfg, 0x01);
-    systick_wait(1);
-#else
-// later
-#endif
+
+    lcd_send_cmd_bit(lcd_cfg, 0x01);
+
     return LCD_RET_OK;
 }
 
 
 
-lcd_ret_t lcd_set_cursor_pos(lcd_cfg_t* lcd_cfg, uint8_t row, uint8_t col){
-#if LCD_MODE == LCD_MODE_8
+lcd_ret_t lcd_set_cursor_pos(lcd_cfg_t* lcd_cfg, uint8_t row, uint8_t col)
+{
+    uint8_t address = 0;
 
+    // clamp col to 0–15 for safety
+    if (col > 15) col = 15;
 
-#else
-// later
-#endif
+    switch (row)
+    {
+        case 0:
+            address = 0x00 + col;
+            break;
+
+        case 1:
+            address = 0x40 + col;
+            break;
+
+        default:
+            return LCD_RET_NOK; // invalid row
+    }
+
+    lcd_send_cmd_bit(lcd_cfg, 0x80 | address);
+    systick_wait(1);
+
+    return LCD_RET_OK;
 }
 
 

@@ -31,15 +31,25 @@ int main(void)
 
     // btn_init();
     lcd_init(&lcd_cfg);
-    lcd_write_string(&lcd_cfg, "Youssef Elkashef");
-    // sched_init(1);
-    // sched_start();
+    lcd_write_string(&lcd_cfg, "YE TM");
+
     
+    int pos = 0;
+    int dir = 1;
 
     while (1)
     {
-        //lcd_write_char(&lcd_cfg, 'x');
-        //systick_wait(1000);
+        lcd_clear_lcd(&lcd_cfg);
+
+        lcd_set_cursor_pos(&lcd_cfg, 0, pos);
+        lcd_write_char(&lcd_cfg, '_');
+
+        systick_wait(150);
+
+        pos += dir;
+
+        if (pos >= 15) dir = -1;
+        if (pos <= 0)  dir = 1;
     }
 
     return 0;
