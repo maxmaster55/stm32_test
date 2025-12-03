@@ -1,3 +1,4 @@
+#pragma once
 #include "glob.h"
 #include "MCAL/RCC/rcc.h"
 
