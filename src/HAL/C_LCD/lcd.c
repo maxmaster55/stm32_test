@@ -1,72 +1,15 @@
+#include <service/scheduler/sched.h>
 #include <MCAL/systick/systick.h>
 #include <HAL/C_LCD/lcd.h>
-
-// scheduler stuff
-
 
 
 
 // helpers 
-
-static void lcd_pulse_en(lcd_cfg_t* lcd_cfg)
-{
-    gpio_write(lcd_cfg->port, lcd_cfg->en_pin, 1);
-    systick_wait(1);
-    gpio_write(lcd_cfg->port, lcd_cfg->en_pin, 0);
-    systick_wait(1);
-}
-
-static void lcd_write_nibble(lcd_cfg_t* lcd_cfg, uint8_t nibble)
-{
-    for (uint8_t i = 0; i < 4; i++)
-    {
-        uint8_t bit = (nibble >> i) & 0x01;
-        gpio_write(lcd_cfg->port, lcd_cfg->d_pins[i], bit);
-    }
-    lcd_pulse_en(lcd_cfg);
-}
-
-static void lcd_write_byte(lcd_cfg_t* lcd_cfg, uint8_t data)
-{
-#if LCD_MODE == LCD_MODE_4
-    // Send high nibble
-    lcd_write_nibble(lcd_cfg, (data >> 4) & 0x0F);
-    // Send low nibble
-    lcd_write_nibble(lcd_cfg, data & 0x0F);
-
-#elif LCD_MODE == LCD_MODE_8
-    // Direct write to all 8 pins
-    for (uint8_t i = 0; i < 8; i++)
-    {
-        uint8_t bit = (data >> i) & 0x01;
-        gpio_write_pin(lcd_cfg->port, lcd_cfg->d_pins[i], bit);
-    }
-    lcd_pulse_en(lcd_cfg);
-
-#else
-#error "Invalid LCD_MODE! Must be LCD_MODE_4 or LCD_MODE_8"
-#endif
-}
-
-void lcd_send_cmd_bit(lcd_cfg_t* lcd_cfg, uint8_t cmd)
-{
-    // RS = 0 → Command
-    gpio_write(lcd_cfg->port, lcd_cfg->rs_pin, 0);
-    // RW = 0 → Write
-    gpio_write(lcd_cfg->port, lcd_cfg->rw_pin, 0);
-
-    lcd_write_byte(lcd_cfg, cmd);
-}
-
-void lcd_send_data_bit(lcd_cfg_t* lcd_cfg, uint8_t data)
-{
-    // RS = 1 → Data
-    gpio_write(lcd_cfg->port, lcd_cfg->rs_pin, 1);
-    // RW = 0 → Write
-    gpio_write(lcd_cfg->port, lcd_cfg->rw_pin, 0);
-
-    lcd_write_byte(lcd_cfg, data);
-}
+static void lcd_pulse_en(lcd_cfg_t* lcd_cfg);
+static void lcd_write_nibble(lcd_cfg_t* lcd_cfg, uint8_t nibble);
+static void lcd_write_byte(lcd_cfg_t* lcd_cfg, uint8_t data);
+static void lcd_send_cmd_bit(lcd_cfg_t* lcd_cfg, uint8_t cmd);
+static void lcd_send_data_bit(lcd_cfg_t* lcd_cfg, uint8_t data);
 
 
 // api
@@ -104,25 +47,9 @@ lcd_ret_t lcd_init(lcd_cfg_t* lcd_cfg)
 
     systick_wait(40);
 
-#if LCD_MODE == LCD_MODE_4
     gpio_write(lcd_cfg->port, lcd_cfg->rs_pin, 0);
     gpio_write(lcd_cfg->port, lcd_cfg->rw_pin, 0);
 
-    // Function set (8-bit mode, three times)
-    lcd_write_nibble(lcd_cfg, 0x03);
-    systick_wait(5);
-
-    lcd_write_nibble(lcd_cfg, 0x03);
-    systick_wait(1);
-
-    lcd_write_nibble(lcd_cfg, 0x03);
-    systick_wait(1);
-
-    // Switch to 4-bit mode
-    lcd_write_nibble(lcd_cfg, 0x02);
-    systick_wait(1);
-
-#endif
 
 #if LCD_MODE == LCD_MODE_4
     lcd_send_cmd_bit(lcd_cfg, 0x28);   // 4-bit, 2-line, 5x8 font
@@ -220,4 +147,65 @@ lcd_ret_t lcd_save_custom_char(lcd_cfg_t* lcd_cfg, uint8_t* custom, uint8_t inde
 #endif
 }
 
+
+// helpers implementation
+static void lcd_pulse_en(lcd_cfg_t* lcd_cfg)
+{
+    gpio_write(lcd_cfg->port, lcd_cfg->en_pin, 1);
+    systick_wait(1);
+    gpio_write(lcd_cfg->port, lcd_cfg->en_pin, 0);
+    systick_wait(1);
+}
+
+static void lcd_write_nibble(lcd_cfg_t* lcd_cfg, uint8_t nibble)
+{
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        uint8_t bit = (nibble >> i) & 0x01;
+        gpio_write(lcd_cfg->port, lcd_cfg->d_pins[i], bit);
+    }
+    lcd_pulse_en(lcd_cfg);
+}
+
+static void lcd_write_byte(lcd_cfg_t* lcd_cfg, uint8_t data)
+{
+#if LCD_MODE == LCD_MODE_4
+    // Send high nibble
+    lcd_write_nibble(lcd_cfg, (data >> 4) & 0x0F);
+    // Send low nibble
+    lcd_write_nibble(lcd_cfg, data & 0x0F);
+
+#elif LCD_MODE == LCD_MODE_8
+    // Direct write to all 8 pins
+    for (uint8_t i = 0; i < 8; i++)
+    {
+        uint8_t bit = (data >> i) & 0x01;
+        gpio_write_pin(lcd_cfg->port, lcd_cfg->d_pins[i], bit);
+    }
+    lcd_pulse_en(lcd_cfg);
+
+#else
+#error "Invalid LCD_MODE! Must be LCD_MODE_4 or LCD_MODE_8"
+#endif
+}
+
+static void lcd_send_cmd_bit(lcd_cfg_t* lcd_cfg, uint8_t cmd)
+{
+    // RS = 0 → Command
+    gpio_write(lcd_cfg->port, lcd_cfg->rs_pin, 0);
+    // RW = 0 → Write
+    gpio_write(lcd_cfg->port, lcd_cfg->rw_pin, 0);
+
+    lcd_write_byte(lcd_cfg, cmd);
+}
+
+static void lcd_send_data_bit(lcd_cfg_t* lcd_cfg, uint8_t data)
+{
+    // RS = 1 → Data
+    gpio_write(lcd_cfg->port, lcd_cfg->rs_pin, 1);
+    // RW = 0 → Write
+    gpio_write(lcd_cfg->port, lcd_cfg->rw_pin, 0);
+
+    lcd_write_byte(lcd_cfg, data);
+}
 
