@@ -72,9 +72,31 @@ typedef enum{
 #define LCD_CUSTOM_CHAR_7       (7)
 
 
+// async stuff (state machine)
+
+// global SM
+typedef enum{
+    LCD_STATE_INIT,
+    LCD_STATE_WRITING,
+    LCD_STATE_IDLE
+} lcd_state_t;
+
+// init SM
+typedef enum {
+    LCD_INIT_1_LINE_FONT,
+    LCD_INIT_2_DISPLAY_ON,
+    LCD_INIT_3_CLEAR,
+    LCD_INIT_4_ENTRY_MODE,
+    LCD_INIT_5_DONE
+} lcd_init_state_t;
+
+
 
 // will need some helpers (send data, send cmd, send data, handle 4 bit, trig en)
 lcd_ret_t lcd_init(lcd_cfg_t* lcd_cfg);
+lcd_ret_t lcd_async_init(lcd_cfg_t* lcd_cfg);
+lcd_ret_t lcd_async_write_str(lcd_cfg_t* lcd_cfg, const char *str);
+
 lcd_ret_t lcd_write_char(lcd_cfg_t* lcd_cfg, char c);
 lcd_ret_t lcd_write_string(lcd_cfg_t* lcd_cfg, char* str);
 lcd_ret_t lcd_clear_lcd(lcd_cfg_t* lcd_cfg);

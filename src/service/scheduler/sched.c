@@ -11,7 +11,6 @@ volatile int trig = 0;
 sched_ret_t sched_start(){
 
     systick_start();
-     // G_ticks = 0;
     while (1)
     {
         if (trig == 1)
@@ -44,7 +43,7 @@ sched_ret_t sched_init(uint32_t time){
     systick_init(CLK, SYSTICK_PRESCALER_NO);
     systick_set_val(time);
     systick_configure_callback(sched_exec);
-    //systick_start();
+    systick_start();
 }
 
 sched_ret_t sched_register(runnable_t* runnable){

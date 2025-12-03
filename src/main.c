@@ -25,32 +25,17 @@ int main(void)
     // enable GPIO Clock
     rcc_En_clk_preiph(RCC_GPIOA);
 
-    systick_init(CLK, SYSTICK_PRESCALER_NO);
-    systick_set_val(1);
-    systick_start();
-
-    // btn_init();
-    lcd_init(&lcd_cfg);
-    lcd_write_string(&lcd_cfg, "YE TM");
-
+    sched_init(1);
     
-    int pos = 0;
-    int dir = 1;
+    lcd_async_init(&lcd_cfg);
+    char* x = "Touch some grass";
+    lcd_async_write_str(&lcd_cfg, x);
+    sched_start();
 
     while (1)
     {
-        lcd_clear_lcd(&lcd_cfg);
-
-        lcd_set_cursor_pos(&lcd_cfg, 0, pos);
-        lcd_write_char(&lcd_cfg, '_');
-
-        systick_wait(150);
-
-        pos += dir;
-
-        if (pos >= 15) dir = -1;
-        if (pos <= 0)  dir = 1;
+        // nthin
     }
-
+    
     return 0;
 }
