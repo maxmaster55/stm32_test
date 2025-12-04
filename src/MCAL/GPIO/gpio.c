@@ -7,7 +7,8 @@
 gpio_return_t gpio_init(GPIO_PinConfig_t *pin_cfg){
     if(pin_cfg == NULL || pin_cfg->port == NULL) return GPIO_RES_NOK;
 
-    volatile uint8_t pin_index = GPIO_MASK_TO_PIN(pin_cfg->pin);
+    //volatile uint8_t pin_index = GPIO_MASK_TO_PIN(pin_cfg->pin);
+    volatile uint8_t pin_index = pin_cfg->pin;
 
     /* OTYPER: single bit per pin */
     pin_cfg->port->OTYPER &= ~(1U << pin_index); /* clear output type */
@@ -30,27 +31,28 @@ gpio_return_t gpio_init(GPIO_PinConfig_t *pin_cfg){
 gpio_return_t gpio_write(GPIO_RegDef_t *port, uint16_t pin, uint8_t value){
     if(port == NULL) return GPIO_RES_NOK;
     /* BSRR: lower half sets, upper half resets */
-    port->BSRR = (value) ? pin : (pin << 16); // atomic set
+    uint32_t mask = (1U << pin);
+    port->BSRR = (value) ? mask : (mask << 16); // atomic set
     return GPIO_RES_OK;
 }
 
 gpio_return_t gpio_read(GPIO_RegDef_t *port, uint16_t pin, uint8_t *value){
     if(port == NULL || value == NULL) return GPIO_RES_NOK;
-    *value = (port->IDR & pin) ? 1 : 0;
+    *value = (port->IDR & (1U << pin)) ? 1 : 0;
     return GPIO_RES_OK;
 }
 
 gpio_return_t gpio_toggle(GPIO_RegDef_t *port, uint16_t pin){
     if(port == NULL) return GPIO_RES_NOK;
-    port->ODR ^= pin; // not atomic
+    port->ODR ^= (1U << pin); // not atomic
     return GPIO_RES_OK;
 }
 
 gpio_return_t gpio_set_alt_function(GPIO_RegDef_t *port, uint16_t pin, uint8_t alt_func){
     if(port == NULL) return GPIO_RES_NOK;
-    uint8_t pin_number = GPIO_MASK_TO_PIN(pin);
-    uint8_t reg = pin_number / 8;               /* 0 for AFR[0], 1 for AFR[1] */
-    uint8_t shift = (pin_number % 8) * 4;       /* correct shift within that register */
+    //uint8_t pin_number = GPIO_MASK_TO_PIN(pin);
+    uint8_t reg = pin / 8;               /* 0 for AFR[0], 1 for AFR[1] */
+    uint8_t shift = (pin % 8) * 4;       /* correct shift within that register */
 
     port->AFR[reg] &= ~(0x0FU << shift);        /* clear 4 bits for that pin */
     port->AFR[reg] |= ((alt_func & 0x0FU) << shift);  /* set new alternate function */

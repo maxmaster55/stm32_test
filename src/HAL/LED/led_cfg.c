@@ -4,49 +4,49 @@
 const led_config_t LED_cfg[LED_NUM_MAX] = {
     [LED_NAME_0] = {
         .active_state = LED_ACTIVE_STATE_HIGH,
-        .pin = GPIO_PIN_0,
+        .pin = 0,
         .port = GPIOA,
         .is_PP = true
     },    
     [LED_NAME_1] = {
         .active_state = LED_ACTIVE_STATE_HIGH,
-        .pin = GPIO_PIN_1,
+        .pin = 1,
         .port = GPIOA,
         .is_PP = true
     },
     [LED_NAME_2] = {
         .active_state = LED_ACTIVE_STATE_HIGH,
-        .pin = GPIO_PIN_2,
+        .pin = 2,
         .port = GPIOA,
         .is_PP = true
     },    
     [LED_NAME_3] = {
         .active_state = LED_ACTIVE_STATE_HIGH,
-        .pin = GPIO_PIN_3,
+        .pin = 3,
         .port = GPIOA,
         .is_PP = true
     },
     [LED_NAME_4] = {
         .active_state = LED_ACTIVE_STATE_HIGH,
-        .pin = GPIO_PIN_4,
+        .pin = 4,
         .port = GPIOA,
         .is_PP = true
     },    
     [LED_NAME_5] = {
         .active_state = LED_ACTIVE_STATE_HIGH,
-        .pin = GPIO_PIN_5,
+        .pin = 5,
         .port = GPIOA,
         .is_PP = true
     },
     [LED_NAME_6] = {
         .active_state = LED_ACTIVE_STATE_HIGH,
-        .pin = GPIO_PIN_6,
+        .pin = 6,
         .port = GPIOA,
         .is_PP = true
     },
     [LED_NAME_7] = {
         .active_state = LED_ACTIVE_STATE_HIGH,
-        .pin = GPIO_PIN_7,
+        .pin = 7,
         .port = GPIOA,
         .is_PP = true
     }

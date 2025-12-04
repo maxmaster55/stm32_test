@@ -9,13 +9,10 @@
 
 lcd_cfg_t lcd_cfg = {
     .port = GPIOA,
-    .d_pins = {
-        GPIO_PIN_3, GPIO_PIN_4, 
-        GPIO_PIN_5, GPIO_PIN_6
-    },
-    .rs_pin = GPIO_PIN_0,
-    .rw_pin = GPIO_PIN_1,
-    .en_pin = GPIO_PIN_2,
+    .d_pins = {3, 4, 5, 6},
+    .rs_pin = 0,
+    .rw_pin = 1,
+    .en_pin = 2,
 };
 
 

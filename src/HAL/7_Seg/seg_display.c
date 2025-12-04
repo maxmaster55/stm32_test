@@ -66,9 +66,9 @@ seg_ret_t segment_en_dot(seg_name_t name) {
     segment_get_val(name, &curr);
 
     if (cfg.type == SEGMENT_COMMON_ANODE) {
-        curr &= ~GPIO_PIN_7;     // dot ON (active low)
+        curr &= ~7;     // dot ON (active low)
     } else { // COMMON CATHODE
-        curr |= GPIO_PIN_7;      // dot ON (active high)
+        curr |= 7;      // dot ON (active high)
     }
     
     gpio_set_port_value(cfg.port, curr);

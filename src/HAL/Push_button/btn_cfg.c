@@ -3,7 +3,7 @@
 
 const btn_config_t btn_cfg[BTN_NUM_MAX] = {
     [BTN_NAME_0] = {
-        .pin = GPIO_PIN_8,
+        .pin = 8,
         .port = GPIOA,
         .pull = BTN_RESISTANCE_PULLUP_INTERNAL
     },
