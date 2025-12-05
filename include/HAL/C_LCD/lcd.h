@@ -78,6 +78,8 @@ typedef enum{
 typedef enum{
     LCD_STATE_INIT,
     LCD_STATE_WRITING,
+    LCD_STATE_SAVE_CUSTOM,
+    LCD_STATE_WRITE_CUSTOM,
     LCD_STATE_IDLE
 } lcd_state_t;
 
@@ -96,11 +98,14 @@ typedef enum {
 lcd_ret_t lcd_init(lcd_cfg_t* lcd_cfg);
 lcd_ret_t lcd_async_init(lcd_cfg_t* lcd_cfg);
 lcd_ret_t lcd_async_write_str(lcd_cfg_t* lcd_cfg, const char *str);
+lcd_ret_t lcd_async_save_custom_char(lcd_cfg_t* lcd_cfg, uint8_t* custom, uint8_t index);
+lcd_ret_t lcd_async_write_custom_char(lcd_cfg_t* lcd_cfg, uint8_t index);
+
 
 lcd_ret_t lcd_write_char(lcd_cfg_t* lcd_cfg, char c);
 lcd_ret_t lcd_write_string(lcd_cfg_t* lcd_cfg, char* str);
 lcd_ret_t lcd_clear_lcd(lcd_cfg_t* lcd_cfg);
 lcd_ret_t lcd_set_cursor_pos(lcd_cfg_t* lcd_cfg, uint8_t row, uint8_t col);
 lcd_ret_t lcd_save_custom_char(lcd_cfg_t* lcd_cfg, uint8_t* custom, uint8_t index);
-
+lcd_ret_t lcd_show_custom_char(lcd_cfg_t* lcd, uint8_t index);
 

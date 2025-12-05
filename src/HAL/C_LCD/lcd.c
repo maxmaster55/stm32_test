@@ -28,6 +28,10 @@ static void lcd_send_data_bit(lcd_cfg_t* lcd_cfg, uint8_t data);
 static lcd_state_t lcd_state = LCD_STATE_INIT;
 static lcd_init_state_t init_state = LCD_INIT_1_LINE_FONT;
 static char* pending_write = NULL;
+static uint8_t save_custom = 0;
+static uint8_t write_custom = 0;
+static uint8_t custom_index = 0;
+static char custom_to_write[8] = {0};
 
 void lcd_callback(void* args){
     lcd_cfg_t* lcd_cfg = (lcd_cfg_t*) args;
@@ -117,10 +121,82 @@ void lcd_callback(void* args){
         get_step(1);
         pending_write += 1;
         break;
+    case LCD_STATE_SAVE_CUSTOM:
+    {
+        static uint8_t step = 0;
+
+        if (step == 0) {
+            lcd_async_send_cmd(lcd_cfg, 0x40 | (custom_index << 3), 1);
+            step++;
+            return;
+        }
+        if (step == 1) { lcd_en_high(lcd_cfg); step++; return; }
+        if (step == 2) { lcd_en_low(lcd_cfg);  step++; return; }
+
+        // write 8 bytes
+        uint8_t row = (step - 3) / 6;     // each row takes 6 steps
+        uint8_t sub = (step - 3) % 6;
+
+        if (row < 8)
+        {
+            switch(sub)
+            {
+                case 0: lcd_async_send_data(lcd_cfg, custom_to_write[row], 1); return;
+                case 1: lcd_en_high(lcd_cfg); return;
+                case 2: lcd_en_low(lcd_cfg);  return;
+                case 3: lcd_async_send_data(lcd_cfg, custom_to_write[row], 2); return;
+                case 4: lcd_en_high(lcd_cfg); return;
+                case 5: lcd_en_low(lcd_cfg);  step++; return;
+            }
+        }
+
+        // done writing all 8 rows → return to DDRAM
+        if (step == (3 + 8*6))
+        {
+            lcd_async_send_cmd(lcd_cfg, 0x80, 1);
+            step++;
+            return;
+        }
+        if (step == (3 + 8*6 + 1)) { lcd_en_high(lcd_cfg); step++; return; }
+        if (step == (3 + 8*6 + 2)) { lcd_en_low(lcd_cfg);  step++; return; }
+        if (step == (3 + 8*6 + 3)) { lcd_async_send_cmd(lcd_cfg, 0x80, 2); step++; return; }
+        if (step == (3 + 8*6 + 4)) { lcd_en_high(lcd_cfg); step++; return; }
+        if (step == (3 + 8*6 + 5)) {
+            lcd_en_low(lcd_cfg);
+            step = 0;
+            save_custom = 0;
+            lcd_state = LCD_STATE_IDLE;
+            return;
+        }
+    }
+
+    case LCD_STATE_WRITE_CUSTOM:
+        switch (get_step(0))
+        {
+        case 1:lcd_async_send_data(lcd_cfg, custom_index, 1);return;
+        case 2:lcd_en_high(lcd_cfg);return;
+        case 3:lcd_en_low(lcd_cfg);return;
+        case 4:lcd_async_send_data(lcd_cfg, custom_index, 2);return;
+        case 5:lcd_en_high(lcd_cfg);return;
+        case 6:lcd_en_low(lcd_cfg);return;
+        }
+        get_step(1);
+        write_custom = 0;
+        lcd_state = LCD_STATE_IDLE;
+        break;
+
     case LCD_STATE_IDLE:
         if (pending_write != NULL)
         {
             lcd_state = LCD_STATE_WRITING;return;
+        }
+        if (save_custom == 1)
+        {
+            lcd_state = LCD_STATE_SAVE_CUSTOM;return;
+        }
+        if (write_custom == 1)
+        {
+            lcd_state = LCD_STATE_WRITE_CUSTOM;return;
         }
         break;
     }
@@ -184,8 +260,41 @@ lcd_ret_t lcd_async_init(lcd_cfg_t* lcd_cfg)
 
 lcd_ret_t lcd_async_write_str(lcd_cfg_t* lcd_cfg, const char *str)
 {
-    pending_write = str;
+    if (pending_write == NULL)
+    {
+        pending_write = str;
+    }
+    
     return LCD_RET_OK;
+}
+
+lcd_ret_t lcd_async_save_custom_char(lcd_cfg_t* lcd_cfg, uint8_t* custom, uint8_t index)
+{
+    if (lcd_cfg == NULL)
+    {
+        return LCD_RET_NOK;
+    }
+    
+    custom_index = index;
+    for (uint8_t i = 0; i < 8; i++)
+    {
+        custom_to_write[i] = custom[i];
+    }
+    
+    // set flag
+    save_custom = 1;
+}
+
+lcd_ret_t lcd_async_write_custom_char(lcd_cfg_t* lcd_cfg, uint8_t index)
+{
+    if (lcd_cfg == NULL)
+    {
+        return LCD_RET_NOK;
+    }
+    
+    custom_index = index;
+
+    write_custom = 1;
 }
 
 // api
@@ -318,20 +427,34 @@ lcd_ret_t lcd_set_cursor_pos(lcd_cfg_t* lcd_cfg, uint8_t row, uint8_t col)
 
 lcd_ret_t lcd_save_custom_char(lcd_cfg_t* lcd_cfg, uint8_t* custom, uint8_t index)
 {
-#if LCD_MODE == LCD_MODE_8
+    index &= 0x07;
 
+    // 1. Set CGRAM address (RS=0)
+    lcd_send_cmd_bit(lcd_cfg, 0x40 | (index << 3));
 
-#else
-// later
-#endif
+    // 2. Write 8 bytes (RS=1)
+    for (int i = 0; i < 8; i++)
+    {
+        lcd_write_char(lcd_cfg, custom[i]);
+    }
+
+    // 3. Return to DDRAM
+    lcd_send_cmd_bit(lcd_cfg, 0x80);
+
+    return LCD_RET_OK;
 }
 
+
+lcd_ret_t lcd_show_custom_char(lcd_cfg_t* lcd, uint8_t index){
+
+    lcd_write_char(lcd, index);
+}
 
 // helpers implementation
 
 static uint32_t get_step(uint8_t reset)
 {
-    static step_num = 0;
+    static int step_num = 0;
     step_num += 1;
     if (reset > 0)
     {
