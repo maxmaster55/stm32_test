@@ -34,12 +34,12 @@ void matrix_callback(void* args)
 
 
 runnable_t matrix_runnable = {
-    .name = "marix",
+    "marix",
     .callback = matrix_callback,
     .every = 1, // as a default
     .first_delay = 0,
     .priority = 0,
-    .args = NULL // will change later
+    .args = NULL
 };
 
 
