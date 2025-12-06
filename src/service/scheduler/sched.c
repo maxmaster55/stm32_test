@@ -61,4 +61,5 @@ sched_ret_t sched_register(runnable_t* runnable){
 
 sched_ret_t sched_exec(void){
     trig = 1;
+    return SCHED_RET_OK;
 }

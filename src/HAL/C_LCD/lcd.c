@@ -295,6 +295,8 @@ lcd_ret_t lcd_async_write_custom_char(lcd_cfg_t* lcd_cfg, uint8_t index)
     custom_index = index;
 
     write_custom = 1;
+    return LCD_RET_OK;
+
 }
 
 // api
