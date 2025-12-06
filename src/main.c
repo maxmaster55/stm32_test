@@ -2,48 +2,38 @@
 #include <MCAL/RCC/rcc.h>
 #include <MCAL/GPIO/gpio.h>
 #include <HAL/C_LCD/lcd.h>
-#include <HAL/led_matrix/matrix.h>
+#include <HAL/keypad/keypad.h>
 #include <MCAL/systick/systick.h>
 
 
 #define CLK 16000000
 
 
-lcd_cfg_t lcd_cfg = {
-    .port = GPIOA,
-    .d_pins = {
-        3, 4, 
-        5, 6
-    },
-    .rs_pin = 0,
-    .rw_pin = 1,
-    .en_pin = 2,
+volatile uint8_t x = 0;
+
+void tester_cb(void* args){
+
+    uint8_t pressed = keypad_get_last_pressed();
+    if (pressed != 0){
+        x++;
+    }
+
+}
+
+runnable_t tester = {
+    .name = "tester",
+    .callback = tester_cb,
+    .every = 5,
+    .first_delay = 0,
+    .priority = 2,
+    .args = NULL
 };
 
 
-uint8_t heart[8] = {
-    0b00000,
-    0b01010,
-    0b11111,
-    0b11111,
-    0b11111,
-    0b01110,
-    0b00100,
-    0b00000
+keypad_t keypad_cfg = {
+    .cols = {{GPIOA, 0}, {GPIOA, 1}, {GPIOA, 2}, {GPIOA, 3}},
+    .rows = {{GPIOA, 4}, {GPIOA, 5}, {GPIOA, 6}, {GPIOA, 7}}
 };
-
-
-uint8_t random_shit[8] = {
-  0x0E,
-  0x0E,
-  0x1F,
-  0x15,
-  0x1F,
-  0x15,
-  0x1F,
-  0x0E
-};
-
 
 int main(void)
 {
@@ -56,12 +46,9 @@ int main(void)
 
 
     // lcd_async_init(&lcd_cfg);
-    lcd_async_init(&lcd_cfg);
+    keypad_init(&keypad_cfg);
 
-    lcd_async_write_str(&lcd_cfg, "test");
-    lcd_async_write_str(&lcd_cfg, "help");
-    lcd_async_write_str(&lcd_cfg, "test1");
-    lcd_async_write_str(&lcd_cfg, "test2");
+    sched_register(&tester);
 
     sched_start();
 
