@@ -22,13 +22,14 @@ int main(void)
 
     sched_init(1);
     
-    // lcd_async_init(&lcd_cfg);
-    // char* x = "Touch some grass";
-    // lcd_async_write_str(&lcd_cfg, x);
-    // sched_start();
+    lcd_async_init(&lcd_cfg);
+    char* x = "Touch some grass";
+    lcd_async_write_str(&lcd_cfg, "a");
 
-    lcd_init(&lcd_cfg);
-    lcd_write_char(&lcd_cfg, 'a');
+    sched_start();
+
+    // lcd_init(&lcd_cfg);
+    // lcd_write_char(&lcd_cfg, 'a');
 
 
     while (1)

@@ -33,9 +33,12 @@ static uint8_t write_custom = 0;
 static uint8_t custom_index = 0;
 static char custom_to_write[8] = {0};
 
+// Add these static variables at the top level, not inside switch case
+static uint8_t custom_row = 0;
+static uint8_t custom_step = 0;
+
 void lcd_callback(void* args){
     lcd_cfg_t* lcd_cfg = (lcd_cfg_t*) args;
-
 
     switch (lcd_state)
     {
@@ -107,7 +110,9 @@ void lcd_callback(void* args){
         if (*pending_write == '\0')
         {
             pending_write = NULL;
-            lcd_state = LCD_STATE_IDLE;return;
+            lcd_state = LCD_STATE_IDLE;
+            get_step(1);  // Reset step counter when done
+            return;
         }
         switch (get_step(0))
         {
@@ -122,10 +127,6 @@ void lcd_callback(void* args){
         pending_write += 1;
         break;
     case LCD_STATE_SAVE_CUSTOM:
-    {
-        static uint8_t custom_row = 0;
-        static uint8_t custom_step = 0;
-        
         if (custom_step == 0)
         {
             // Step 0: Set CGRAM address (40 + index*8)
@@ -205,7 +206,6 @@ void lcd_callback(void* args){
             }
         }
         break;
-    }
 
     case LCD_STATE_WRITE_CUSTOM:
         switch (get_step(0))
@@ -225,15 +225,21 @@ void lcd_callback(void* args){
     case LCD_STATE_IDLE:
         if (pending_write != NULL)
         {
-            lcd_state = LCD_STATE_WRITING;return;
+            lcd_state = LCD_STATE_WRITING;
+            get_step(1);  // Reset step counter
+            return;
         }
         if (save_custom == 1)
         {
-            lcd_state = LCD_STATE_SAVE_CUSTOM;return;
+            lcd_state = LCD_STATE_SAVE_CUSTOM;
+            get_step(1);  // Reset step counter
+            return;
         }
         if (write_custom == 1)
         {
-            lcd_state = LCD_STATE_WRITE_CUSTOM;return;
+            lcd_state = LCD_STATE_WRITE_CUSTOM;
+            get_step(1);  // Reset step counter
+            return;
         }
         break;
     }
@@ -244,8 +250,8 @@ runnable_t lcd_runnable = {
     .name = "lcd",
     .callback = lcd_callback,
     .every = 2,
-    .first_delay = 40,
-    .priority = 2,
+    .first_delay = 60,
+    .priority = 0,
     .args = NULL // will change in the init function
 };
 
@@ -297,17 +303,15 @@ lcd_ret_t lcd_async_init(lcd_cfg_t* lcd_cfg)
 
 lcd_ret_t lcd_async_write_str(lcd_cfg_t* lcd_cfg, const char *str)
 {
-    if (pending_write == NULL)
-    {
-        pending_write = str;
-    }
+    // FIXED: Always set the new string
+    pending_write = str;
     
     return LCD_RET_OK;
 }
 
 lcd_ret_t lcd_async_save_custom_char(lcd_cfg_t* lcd_cfg, uint8_t* custom, uint8_t index)
 {
-    if (lcd_cfg == NULL)
+    if (lcd_cfg == NULL || index > 7)
     {
         return LCD_RET_NOK;
     }
@@ -318,13 +322,18 @@ lcd_ret_t lcd_async_save_custom_char(lcd_cfg_t* lcd_cfg, uint8_t* custom, uint8_
         custom_to_write[i] = custom[i];
     }
     
+    // Reset custom state variables
+    custom_row = 0;
+    custom_step = 0;
+    
     // set flag
     save_custom = 1;
+    return LCD_RET_OK;  // Don't forget to return!
 }
 
 lcd_ret_t lcd_async_write_custom_char(lcd_cfg_t* lcd_cfg, uint8_t index)
 {
-    if (lcd_cfg == NULL)
+    if (lcd_cfg == NULL || index > 7)
     {
         return LCD_RET_NOK;
     }
@@ -333,9 +342,7 @@ lcd_ret_t lcd_async_write_custom_char(lcd_cfg_t* lcd_cfg, uint8_t index)
 
     write_custom = 1;
     return LCD_RET_OK;
-
 }
-
 // api
 
 lcd_ret_t lcd_init(lcd_cfg_t* lcd_cfg)
