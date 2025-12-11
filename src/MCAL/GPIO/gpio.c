@@ -24,6 +24,11 @@ gpio_return_t gpio_init(GPIO_PinConfig_t *pin_cfg){
     pin_cfg->port->PUPDR &= ~(0x03U << (pin_index * 2)); /* clear pull bits */
     pin_cfg->port->PUPDR |= ((pin_cfg->pull & 0x03U) << (pin_index * 2));  /* set pull */
 
+    // if alternate function mode, set AFR
+    if(pin_cfg->mode == GPIO_MODE_ALTFN){
+        gpio_set_alt_function(pin_cfg->port, pin_index, pin_cfg->alt_function);
+    }
+
     return GPIO_RES_OK;
 }
 
