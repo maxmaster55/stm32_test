@@ -1,52 +1,74 @@
+#include <glob.h>
 #include <service/scheduler/sched.h>
-#include <MCAL/RCC/rcc.h>
-#include <HAL/C_LCD/lcd.h>
 #include <MCAL/systick/systick.h>
+#include <HAL/C_LCD/lcd.h>
+#include <MCAL/RCC/rcc.h>
+#include <MCAL/NVIC/nvic.h>
+#include <MCAL/uart/uart.h>
+#include <MCAL/GPIO/gpio.h>
 
-#define CLK 16000000
 
-uint8_t heart[8] = {
-    0b00000,
-    0b01010,
-    0b11111,
-    0b11111,
-    0b11111,
-    0b01110,
-    0b00100,
-    0b00000
-};
+volatile int x = 0;
 
-lcd_cfg_t lcd_cfg = {
+void do_smth(void){
+    x++;
+}
+
+uart_cfg_t uart1_test_cfg = {
+    .baud = 9600,
+    .uart_num = UART_NUM_1,
+    .word_length = UART_WORD_LENGTH_8,
+    .parity = UART_PARITY_NONE,
+    .stop_bits = UART_STOP_BITS_1,
+    .rx_callback = NULL,
+    .tx_callback = NULL
+} ;
+
+// uart pins PA9 - TX, PA10 - RX
+GPIO_PinConfig_t uart1_tx_pin_cfg = {
     .port = GPIOA,
-    .d_pins = {3, 4, 5, 6},
-    .rs_pin = 0,
-    .rw_pin = 1,
-    .en_pin = 2,
+    .pin = 9,
+    .mode = GPIO_MODE_ALTFN,
+    .pull = GPIO_PULL_NO,
+    .alt_function = GPIO_AF7_USART1_2,
+    .speed = GPIO_SPEED_HIGH,
+    .output_type = GPIO_OUTPUT_PUSHPULL
 };
+GPIO_PinConfig_t uart1_rx_pin_cfg = {
+    .port = GPIOA,
+    .pin = 10,
+    .mode = GPIO_MODE_ALTFN,
+    .pull = GPIO_PULL_NO,
+    .alt_function = GPIO_AF7_USART1_2,
+    .speed = GPIO_SPEED_HIGH,
+    .output_type = GPIO_OUTPUT_PUSHPULL
+};
+
+
 
 int main(void)
 {
 
-    // enable GPIO Clock
+    // enable Clock
     rcc_En_clk_preiph(RCC_GPIOA);
-    rcc_En_clk_preiph(RCC_GPIOB);
+    rcc_En_clk_preiph(RCC_USART1);
+    //NVIC_EnableIRQ(USART1_IRQn);
 
-    sched_init(1);
     
-    lcd_async_init(&lcd_cfg);
-    char* x = "Touch some grass";
-    systick_wait(500);
-    lcd_async_save_custom_char(&lcd_cfg, &heart, 0);
-    lcd_async_write_custom_char(&lcd_cfg, 0);
-    sched_start();
+    // init uart1
+    gpio_init(&uart1_tx_pin_cfg);
+    gpio_init(&uart1_rx_pin_cfg);
+    uart_init(&uart1_test_cfg);
 
-    // lcd_init(&lcd_cfg);
-    // lcd_write_char(&lcd_cfg, 'a');
+    // test send data
+    const uint8_t* test_str = "test!\r\n";
 
+    uart_send_data(UART_NUM_1, test_str, 7);
 
     while (1)
     {
         // nthin
+        x++;
     }
     
     return 0;
