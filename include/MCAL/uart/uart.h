@@ -168,6 +168,21 @@ typedef enum{
 
 typedef void (*uart_callback_t)(void);
 
+
+typedef struct {
+    volatile uint8_t* rx_buffer;
+    volatile uint32_t rx_index;
+    volatile uint32_t rx_length;
+
+    volatile uint8_t* tx_buffer;
+    volatile uint32_t tx_index;
+    volatile uint32_t tx_length;
+
+    uart_callback_t rx_cb;
+    uart_callback_t tx_cb;
+} uart_ctx_t;
+
+
 typedef struct
 {
     uint32_t baud;

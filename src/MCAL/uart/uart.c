@@ -4,17 +4,7 @@
 
 extern uint64_t G_ticks;
 
-static uart_callback_t uart_rx_callbacks[3] = {0};
-static uart_callback_t uart_tx_callbacks[3] = {0};
-
-volatile uint8_t* send_buffer = NULL;
-volatile uint32_t send_index = 0;
-volatile uint32_t send_length= 0;
-
-volatile uint8_t* receive_buffer = NULL;
-volatile uint32_t receive_index = 0;
-volatile uint32_t receive_length = 0;
-
+static uart_ctx_t uart_ctx[3] = {0};
 
 // helpers 
 static uart_reg_t* get_uart_reg(uart_num_t uart_num){
@@ -43,38 +33,43 @@ static uint8_t uart_num_to_index(uart_num_t uart_num){
     }
 }
 
-
-// interrupt handlers
-void USART1_IRQHandler(void)
-{
-    uart_reg_t* uart_reg = get_uart_reg(UART_NUM_1);
+static void uart_handler(uart_num_t uart_num){
+    uart_reg_t* uart_reg = get_uart_reg(uart_num);
     
+    uint8_t idx = uart_num_to_index(uart_num);
+    uart_ctx_t* ctx = &uart_ctx[idx];
+
     if(uart_reg->SR.bits.RXNE){
         uint8_t data = uart_reg->DR.reg;
 
-        if (receive_index >= receive_length)
+        
+        ctx->rx_buffer[ctx->rx_index++] = data;
+
+        if (ctx->rx_index >= ctx->rx_length)
         {
             // stop
             uart_reg->CR1.bits.RXNEIE = 0;
+            // call rx callback
+            ctx->rx_index = 0;
+            if (ctx->rx_cb) {
+                ctx->rx_cb();
+            }
             return;
         }
 
-        receive_buffer[receive_index++] = data; 
-        
-        if(uart_rx_callbacks[0] != NULL){
-            uart_rx_callbacks[0]();
-        }
+
+
     }
     if(uart_reg->SR.bits.TXE){
 
-        if (send_buffer[send_index] == '\0' || send_buffer == NULL)
+        if (ctx->tx_buffer[ctx->tx_index] == '\0' || ctx->tx_buffer == NULL)
         {
-            send_index = 0;
-            send_length = 0;
+            ctx->tx_index = 0;
+            ctx->tx_length = 0;
             return;
         }
 
-        if (send_index >= send_length)
+        if (ctx->tx_index >= ctx->tx_length)
         {
             // stop
             uart_reg->CR1.bits.TXEIE = 0;
@@ -82,58 +77,32 @@ void USART1_IRQHandler(void)
         }
         
     
-        uart_reg->DR.reg = send_buffer[send_index++];
+        uart_reg->DR.reg = ctx->tx_buffer[ctx->tx_index++];
     
         // do what the user wants
-        if (uart_tx_callbacks != NULL)
+        if (ctx->tx_cb)
         {
-            uart_tx_callbacks[0]();
+            ctx->tx_cb();
         }
         
     }
-    
-    // not that important for now
-    // // Clear any overrun errors
-    // if(uart_reg->SR.bits.ORE) {
-    //     volatile uint8_t dummy = uart_reg->DR.reg; // Read to clear
-    // }
+
+}
+
+// interrupt handlers
+void USART1_IRQHandler(void)
+{
+    uart_handler(UART_NUM_1);
 }
 
 void USART2_IRQHandler(void)
 {
-    uart_reg_t* uart_reg = get_uart_reg(UART_NUM_2);
-    if(uart_reg->SR.bits.RXNE){
-        // call rx callback
-        if(uart_rx_callbacks[1] != NULL){
-            volatile uint8_t data = uart_reg->DR.reg; // Clears RXNE
-
-            uart_rx_callbacks[1]();
-        }
-    }
-    if(uart_reg->SR.bits.TXE){
-        // call tx callback
-        if(uart_tx_callbacks[1] != NULL){
-            uart_tx_callbacks[1]();
-        }
-    }
+    uart_handler(UART_NUM_2);
 }
 
 void USART6_IRQHandler(void)
 {
-    uart_reg_t* uart_reg = get_uart_reg(UART_NUM_6);
-    if(uart_reg->SR.bits.RXNE){
-        // call rx callback
-        if(uart_rx_callbacks[2] != NULL){
-            volatile uint8_t data = uart_reg->DR.reg; // Clears RXNE
-            uart_rx_callbacks[2]();
-        }
-    }
-    if(uart_reg->SR.bits.TXE){
-        // call tx callback
-        if(uart_tx_callbacks[2] != NULL){
-            uart_tx_callbacks[2]();
-        }
-    }
+    uart_handler(UART_NUM_6);
 }
 
 
@@ -187,37 +156,24 @@ uart_status_t uart_init(const uart_cfg_t* cfg)
     // set callbacks
 
     uint8_t uart_index = uart_num_to_index(cfg->uart_num);
-    switch (uart_index)
-    {
-    case 0:
-        uart_rx_callbacks[0] = cfg->rx_callback;
-        uart_tx_callbacks[0] = cfg->tx_callback;
-        break;
-    case 1:
-        uart_rx_callbacks[1] = cfg->rx_callback;
-        uart_tx_callbacks[1] = cfg->tx_callback;
-        break;
-    case 2:
-        uart_rx_callbacks[2] = cfg->rx_callback;
-        uart_tx_callbacks[2] = cfg->tx_callback;
-        break;
-    default:
-        return UART_ERROR;
-        break;
-    }
-    
+    uart_ctx_t* ctx = &uart_ctx[uart_index];
+
+    ctx->rx_cb = cfg->rx_callback;
+    ctx->tx_cb = cfg->tx_callback;
+
 
     // enable interrupts if callbacks are set
-    if(cfg->tx_callback != NULL){
+    switch (cfg->uart_num) {
+    case UART_NUM_1:
         NVIC_EnableIRQ(USART1_IRQn);
-        //uart_reg->CR1.bits.TXEIE = 1;
+        break;
+    case UART_NUM_2:
+        NVIC_EnableIRQ(USART2_IRQn);
+        break;
+    case UART_NUM_6:
+        NVIC_EnableIRQ(USART6_IRQn);
+        break;
     }
-    if(cfg->rx_callback != NULL){
-        NVIC_EnableIRQ(USART1_IRQn);
-        //uart_reg->CR1.bits.RXNEIE = 1;
-    }
-
-
 
     return UART_OK;
 }
@@ -225,32 +181,18 @@ uart_status_t uart_init(const uart_cfg_t* cfg)
 uart_status_t uart_deinit(uart_num_t uart_num)
 {
     uart_reg_t* uart_reg = get_uart_reg(uart_num);
-    if(uart_reg == NULL){
-        return UART_ERROR;
-    }
+    if(uart_reg == NULL) return UART_ERROR;
+    
+    uint8_t uart_index = uart_num_to_index(uart_num);
 
     // disable uart
     uart_reg->CR1.bits.UE = 0;
 
-    uint8_t uart_index = uart_num_to_index(uart_num);
-    switch (uart_index)
-    {
-    case 0:
-        uart_rx_callbacks[0] = NULL;
-        uart_tx_callbacks[0] = NULL;
-        break;
-    case 1:
-        uart_rx_callbacks[1] = NULL;
-        uart_tx_callbacks[1] = NULL;
-        break;
-    case 2:
-        uart_rx_callbacks[2] = NULL;
-        uart_tx_callbacks[2] = NULL;
-        break;
-    default:
-        return UART_ERROR;
-        break;
-    }
+    uart_ctx_t* ctx = &uart_ctx[uart_index];
+
+    ctx->rx_cb = NULL;
+    ctx->tx_cb = NULL;
+
 
     return UART_OK;
 }
@@ -258,45 +200,53 @@ uart_status_t uart_deinit(uart_num_t uart_num)
 uart_status_t uart_send_data(uart_num_t uart_num, const uint8_t* data, uint32_t length)
 {
     uart_reg_t* uart_reg = get_uart_reg(uart_num);
+    if (uart_reg == NULL) return UART_ERROR;
+
+    uint8_t uart_index = uart_num_to_index(uart_num);
+    uart_ctx_t* ctx = &uart_ctx[uart_index];
 
     // error checking
-    if (uart_reg == NULL) return UART_ERROR;
-    if (uart_tx_callbacks[uart_num_to_index(uart_num)] == NULL) return UART_ERROR;
+    if (ctx->tx_cb == NULL) return UART_ERROR;
 
-    send_index = 0;
-    send_length = length;
-    send_buffer = data;
+    ctx->tx_index = 0;
+    ctx->tx_length = length;
+    ctx->tx_buffer = data;
     uart_reg->CR1.bits.TXEIE = 1;
 }
 
 uart_status_t uart_receive_data(uart_num_t uart_num, uint8_t* data, uint32_t length)
 {
     uart_reg_t* uart_reg = get_uart_reg(uart_num);
+    if (uart_reg == NULL) return UART_ERROR;
+
+    uint8_t uart_index = uart_num_to_index(uart_num);
+    uart_ctx_t* ctx = &uart_ctx[uart_index];
 
     // error checking
-    if (uart_reg == NULL) return UART_ERROR;
-    if (uart_tx_callbacks[uart_num_to_index(uart_num)] == NULL) return UART_ERROR;
+    if (ctx->rx_cb == NULL) return UART_ERROR;
 
+    ctx->rx_buffer = data;
+    ctx->rx_length = length;
+    ctx->rx_index  = 0;
 
-    // enable int
-    receive_length = length;
-    receive_buffer = data;
     uart_reg->CR1.bits.RXNEIE = 1;
-
 }
 
 
 uart_status_t uart_read_receive_buffer(uart_num_t uart_num, uint8_t* data){
     uart_reg_t* uart_reg = get_uart_reg(uart_num);
-
-    // error checking
     if (uart_reg == NULL) return UART_ERROR;
 
-    for (int i = 0; i < receive_length; i++)
-    {
-        data[i] = receive_buffer[i];
-    }
+    uint8_t uart_index = uart_num_to_index(uart_num);
+    uart_ctx_t* ctx = &uart_ctx[uart_index];
 
+    // error checking
+
+    for (int i = 0; i < ctx->rx_length; i++)
+    {
+        data[i] = ctx->rx_buffer[i];
+    }
+    return UART_OK;
 }
 
 
@@ -344,23 +294,10 @@ uart_status_t uart_sync_receive_data(uart_num_t uart_num, uint8_t* data, uint32_
 
 uart_status_t uart_register_rx_callback(uart_num_t uart_num, uart_callback_t callback)
 {
-
     uint8_t uart_index = uart_num_to_index(uart_num);
 
-    switch (uart_index)
-    {
-    case 0:
-        uart_rx_callbacks[0] = callback;
-        break;
-    case 1:
-        uart_rx_callbacks[1] = callback;
-        break;
-    case 2:
-        uart_rx_callbacks[2] = callback;
-        break;
-    default:
-        return UART_ERROR;
-    }
+    uart_ctx_t* ctx = &uart_ctx[uart_index];
+    ctx->rx_cb = callback;
     return UART_OK;
 }
 
@@ -368,20 +305,9 @@ uart_status_t uart_register_tx_callback(uart_num_t uart_num, uart_callback_t cal
 {
     uint8_t uart_index = uart_num_to_index(uart_num);
 
-    switch (uart_index)
-    {
-    case 0:
-        uart_tx_callbacks[0] = callback;
-        break;
-    case 1:
-        uart_tx_callbacks[1] = callback;
-        break;
-    case 2:
-        uart_tx_callbacks[2] = callback;
-        break;
-    default:
-        return UART_ERROR;
-    }
+    uart_ctx_t* ctx = &uart_ctx[uart_index];
+    ctx->tx_cb = callback;
+
     return UART_OK;
 }
 

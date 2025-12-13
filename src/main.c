@@ -9,10 +9,9 @@
 
 
 volatile int x = 0;
-volatile char test_data[7] = {0};
+volatile char test_data[24] = {0};
 
 void do_smth(void){
-    uart_receive_data(UART_NUM_1, test_data, 7);
     uart_read_receive_buffer(UART_NUM_1, test_data);
 
 }
@@ -68,7 +67,8 @@ int main(void)
     // test send data
     const uint8_t test_str[8] = {0};
 
-    uart_send_data(UART_NUM_1, "Damn it", 7);
+    uart_send_data(UART_NUM_1, "5", 1);
+    uart_receive_data(UART_NUM_1, test_data, 24);
 
     while (1)
     {
