@@ -1,17 +1,20 @@
 #include <glob.h>
 #include <service/scheduler/sched.h>
 #include <MCAL/systick/systick.h>
+#include <MCAL/NVIC/nvic.h>
 #include <HAL/C_LCD/lcd.h>
 #include <MCAL/RCC/rcc.h>
-#include <MCAL/NVIC/nvic.h>
 #include <MCAL/uart/uart.h>
 #include <MCAL/GPIO/gpio.h>
 
 
 volatile int x = 0;
+volatile char test_data[7] = {0};
 
 void do_smth(void){
-    x++;
+    uart_receive_data(UART_NUM_1, test_data, 7);
+    uart_read_receive_buffer(UART_NUM_1, test_data);
+
 }
 
 uart_cfg_t uart1_test_cfg = {
@@ -20,8 +23,8 @@ uart_cfg_t uart1_test_cfg = {
     .word_length = UART_WORD_LENGTH_8,
     .parity = UART_PARITY_NONE,
     .stop_bits = UART_STOP_BITS_1,
-    .rx_callback = NULL,
-    .tx_callback = NULL
+    .rx_callback = do_smth,
+    .tx_callback = do_smth
 } ;
 
 // uart pins PA9 - TX, PA10 - RX
@@ -52,18 +55,20 @@ int main(void)
     // enable Clock
     rcc_En_clk_preiph(RCC_GPIOA);
     rcc_En_clk_preiph(RCC_USART1);
-    //NVIC_EnableIRQ(USART1_IRQn);
 
-    
+    // start systick
+    systick_init(CLK, SYSTICK_PRESCALER_NO);
+    systick_set_val(1);
+    systick_start();
     // init uart1
     gpio_init(&uart1_tx_pin_cfg);
     gpio_init(&uart1_rx_pin_cfg);
     uart_init(&uart1_test_cfg);
 
     // test send data
-    const uint8_t* test_str = "test!\r\n";
+    const uint8_t test_str[8] = {0};
 
-    uart_send_data(UART_NUM_1, test_str, 7);
+    uart_send_data(UART_NUM_1, "Damn it", 7);
 
     while (1)
     {

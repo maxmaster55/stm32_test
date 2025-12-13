@@ -183,8 +183,16 @@ typedef struct
 
 uart_status_t uart_init(const uart_cfg_t* cfg);
 uart_status_t uart_deinit(uart_num_t uart_num);
+
+// async
 uart_status_t uart_send_data(uart_num_t uart_num, const uint8_t* data, uint32_t length);
-uart_status_t uart_receive_data(uart_num_t uart_num, uint8_t* data, uint32_t length, uint32_t timeout_ms);
+uart_status_t uart_receive_data(uart_num_t uart_num, uint8_t* data, uint32_t length);
+uart_status_t uart_read_receive_buffer(uart_num_t uart_num, uint8_t* data);
+
+// sync
+uart_status_t uart_sync_send_data(uart_num_t uart_num, const uint8_t* data, uint32_t length);
+uart_status_t uart_sync_receive_data(uart_num_t uart_num, uint8_t* data, uint32_t length, uint32_t timeout_ms);
+
 uart_status_t uart_register_rx_callback(uart_num_t uart_num, uart_callback_t callback);
 uart_status_t uart_register_tx_callback(uart_num_t uart_num, uart_callback_t callback);
 uint8_t uart_is_tx_busy(uart_num_t uart_num);
