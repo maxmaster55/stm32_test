@@ -235,6 +235,17 @@ typedef union{
 } dma_SxFCR_reg_t;
 
 
+typedef struct 
+{
+    dma_SxCR_reg_t SxCR;       // 0x00
+    dma_SxNDTR_reg_t SxNDTR;   // 0x04
+    dma_SxPAR_reg_t SxPAR;     // 0x08
+    dma_SxM0AR_reg_t SxM0AR;   // 0x0C
+    dma_SxM1AR_reg_t SxM1AR;   // 0x10
+    dma_SxFCR_reg_t SxFCR;      // 0x14
+} dma_stream_regs_t;
+
+
 
 typedef struct
 {
@@ -242,60 +253,7 @@ typedef struct
     dma_HISR_reg_t HISR;       // 0x04
     dma_LIFCR_reg_t LIFCR;     // 0x08
     dma_HIFCR_reg_t HIFCR;     // 0x0C
-    // Stream 0
-    dma_SxCR_reg_t S0CR;       // 0x10
-    dma_SxNDTR_reg_t S0NDTR;   // 0x14
-    dma_SxPAR_reg_t S0PAR;     // 0x18
-    dma_SxM0AR_reg_t S0M0AR;   // 0x1C
-    dma_SxM1AR_reg_t S0M1AR;   // 0x20
-    dma_SxFCR_reg_t S0FCR;       // 0x24
-    // Stream 1
-    dma_SxCR_reg_t S1CR;       // 0x28
-    dma_SxNDTR_reg_t S1NDTR;   // 0x2C
-    dma_SxPAR_reg_t S1PAR;     // 0x30
-    dma_SxM0AR_reg_t S1M0AR;   // 0x34
-    dma_SxM1AR_reg_t S1M1AR;   // 0x38
-    dma_SxFCR_reg_t S1FCR;       // 0x3C
-    // Stream 2
-    dma_SxCR_reg_t S2CR;       // 0x40
-    dma_SxNDTR_reg_t S2NDTR;   // 0x44
-    dma_SxPAR_reg_t S2PAR;     // 0x48
-    dma_SxM0AR_reg_t S2M0AR;   // 0x4C
-    dma_SxM1AR_reg_t S2M1AR;   // 0x50
-    dma_SxFCR_reg_t S2FCR;       // 0x54
-    // Stream 3
-    dma_SxCR_reg_t S3CR;       // 0x58
-    dma_SxNDTR_reg_t S3NDTR;   // 0x5C
-    dma_SxPAR_reg_t S3PAR;     // 0x60
-    dma_SxM0AR_reg_t S3M0AR;   // 0x64
-    dma_SxM1AR_reg_t S3M1AR;   // 0x68
-    dma_SxFCR_reg_t S3FCR;       // 0x6C
-    // Stream 4
-    dma_SxCR_reg_t S4CR;       // 0x70
-    dma_SxNDTR_reg_t S4NDTR;   // 0x74
-    dma_SxPAR_reg_t S4PAR;     // 0x78
-    dma_SxM0AR_reg_t S4M0AR;   // 0x7C
-    dma_SxM1AR_reg_t S4M1AR;   // 0x80
-    dma_SxFCR_reg_t S4FCR;       // 0x84
-    // Stream 5
-    dma_SxCR_reg_t S5CR;       // 0x88
-    dma_SxNDTR_reg_t S5NDTR;   // 0x8C
-    dma_SxPAR_reg_t S5PAR;     // 0x90
-    dma_SxM0AR_reg_t S5M0AR;   // 0x94
-    dma_SxM1AR_reg_t S5M1AR;   // 0x98
-    dma_SxFCR_reg_t S5FCR;       // 0x9C
-    // Stream 6
-    dma_SxCR_reg_t S6CR;       // 0xA0
-    dma_SxNDTR_reg_t S6NDTR;   // 0xA4
-    dma_SxPAR_reg_t S6PAR;     // 0xA8
-    dma_SxM0AR_reg_t S6M0AR;   // 0xAC
-    dma_SxM1AR_reg_t S6M1AR;   // 0xB0
-    dma_SxFCR_reg_t S6FCR;       // 0xB4
-    // Stream 7
-    dma_SxCR_reg_t S7CR;       // 0xB8
-    dma_SxNDTR_reg_t S7NDTR;   // 0xBC
-    dma_SxPAR_reg_t S7PAR;     // 0xC0
-    dma_SxM0AR_reg_t S7M0AR;   // 0xC4
-    dma_SxM1AR_reg_t S7M1AR;   // 0xC8
-    dma_SxFCR_reg_t S7FCR;       // 0xCC
+    
+    dma_stream_regs_t STREAM[8]; // 0x10 - 0x60
+
 } dma_regs_t;
