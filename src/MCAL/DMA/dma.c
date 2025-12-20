@@ -6,17 +6,14 @@
 dma_ret_t dma_init(dma_cfg_t *cfg){
     if (cfg == NULL) return DMA_NOK;
 
-    dma_SxCR_reg_t *stream = get_stream(DMA2, cfg->stream_number);
-    if (stream == NULL) return DMA_NOK;
-
 
     // disable first
-    stream->bits.EN = 0; 
-    while (stream->bits.EN);
+    cfg->dma->STREAM[cfg->stream_number].SxCR.bits.EN = 0; 
+    while (cfg->dma->STREAM[cfg->stream_number].SxCR.bits.EN);
 
 
     // slect channel
-    stream->bits.CHSEL = cfg->channel;
+    cfg->dma->STREAM[cfg->stream_number].SxCR.bits.CHSEL = cfg->channel;
 
     // set data length
     cfg->dma->STREAM[cfg->stream_number].SxNDTR.bits.NDT = cfg->data_length;
@@ -27,50 +24,50 @@ dma_ret_t dma_init(dma_cfg_t *cfg){
     {
     case DMA_DIR_MEM_TO_MEM:
         // direction
-        stream->bits.DIR = DMA_DIR_MEM_TO_MEM; // memory to memory
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.DIR = DMA_DIR_MEM_TO_MEM; // memory to memory
 
         // data addresses
         cfg->dma->STREAM[cfg->stream_number].SxPAR.reg = (uint32_t)cfg->from; 
         cfg->dma->STREAM[cfg->stream_number].SxM0AR.reg = (uint32_t)cfg->to; // memory address
 
         // increment
-        stream->bits.MINC = cfg->from_increment;
-        stream->bits.PINC = cfg->to_increment;
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.MINC = cfg->from_increment;
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.PINC = cfg->to_increment;
         break;
     
     case DMA_DIR_MEM_TO_PERIPH:
         // direction
-        stream->bits.DIR = DMA_DIR_MEM_TO_PERIPH;
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.DIR = DMA_DIR_MEM_TO_PERIPH;
         
         // data addresses    
         cfg->dma->STREAM[cfg->stream_number].SxPAR.reg = (uint32_t)cfg->to; // peripheral address
         cfg->dma->STREAM[cfg->stream_number].SxM0AR.reg = (uint32_t)cfg->from; 
 
         // increment
-        stream->bits.MINC = cfg->to_increment;
-        stream->bits.PINC = cfg->from_increment;
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.MINC = cfg->to_increment;
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.PINC = cfg->from_increment;
         break;
 
     case DMA_DIR_PERIPH_TO_MEM:
         // direction
-        stream->bits.DIR = DMA_DIR_PERIPH_TO_MEM;
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.DIR = DMA_DIR_PERIPH_TO_MEM;
 
         // data addresses
         cfg->dma->STREAM[cfg->stream_number].SxPAR.reg = (uint32_t)cfg->from; // peripheral address
         cfg->dma->STREAM[cfg->stream_number].SxM0AR.reg = (uint32_t)cfg->to;
 
-        stream->bits.MINC = cfg->to_increment;
-        stream->bits.PINC = cfg->from_increment;
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.MINC = cfg->to_increment;
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.PINC = cfg->from_increment;
         break;
     }
 
 
     // data size (only for direct mode)
-    stream->bits.MSIZE = cfg->element_size;
-    stream->bits.PSIZE = cfg->element_size;
+    cfg->dma->STREAM[cfg->stream_number].SxCR.bits.MSIZE = cfg->element_size;
+    cfg->dma->STREAM[cfg->stream_number].SxCR.bits.PSIZE = cfg->element_size;
 
     // priority
-    stream->bits.PL = cfg->Priority;
+    cfg->dma->STREAM[cfg->stream_number].SxCR.bits.PL = cfg->Priority;
 
 
 
@@ -80,10 +77,8 @@ dma_ret_t dma_init(dma_cfg_t *cfg){
 
 dma_ret_t dma_start(dma_regs_t *dma, dma_stream_t stream_number){
     if (dma == NULL) return DMA_NOK;
-    dma_SxCR_reg_t *stream = get_stream(dma, stream_number);
-    if (stream == NULL) return DMA_NOK;
 
-    stream->bits.EN = 1;
+    dma->STREAM[stream_number].SxCR.bits.EN = 1;
 
     return DMA_OK;
 }
