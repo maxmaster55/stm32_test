@@ -43,8 +43,10 @@ static void uart_handler(uart_num_t uart_num){
         uint8_t data = uart_reg->DR.reg;
 
         
-        ctx->rx_buffer[ctx->rx_index++] = data;
-
+        if (ctx->rx_index < ctx->rx_length) {
+            ctx->rx_buffer[ctx->rx_index++] = data;
+        }
+        
         if (ctx->rx_index >= ctx->rx_length)
         {
             // stop
@@ -62,20 +64,13 @@ static void uart_handler(uart_num_t uart_num){
     }
     if(uart_reg->SR.bits.TXE){
 
-        if (ctx->tx_buffer[ctx->tx_index] == '\0' || ctx->tx_buffer == NULL)
-        {
+        if (ctx->tx_index >= ctx->tx_length) {
+            uart_reg->CR1.bits.TXEIE = 0;
             ctx->tx_index = 0;
             ctx->tx_length = 0;
             return;
         }
 
-        if (ctx->tx_index >= ctx->tx_length)
-        {
-            // stop
-            uart_reg->CR1.bits.TXEIE = 0;
-            return;
-        }
-        
     
         uart_reg->DR.reg = ctx->tx_buffer[ctx->tx_index++];
     
