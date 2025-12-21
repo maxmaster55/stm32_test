@@ -212,3 +212,10 @@ uart_status_t uart_register_rx_callback(uart_num_t uart_num, uart_callback_t cal
 uart_status_t uart_register_tx_callback(uart_num_t uart_num, uart_callback_t callback);
 uint8_t uart_is_tx_busy(uart_num_t uart_num);
 uint8_t uart_is_rx_busy(uart_num_t uart_num);
+
+// dma stuff
+
+void uart_dma_enable_tx(uart_num_t uart_num);
+void uart_dma_enable_rx(uart_num_t uart_num);
+void uart_dma_disable_tx(uart_num_t uart_num);
+void uart_dma_disable_rx(uart_num_t uart_num);

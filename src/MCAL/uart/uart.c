@@ -323,3 +323,40 @@ uint8_t uart_is_rx_busy(uart_num_t uart_num)
     }
     return !uart_reg->SR.bits.RXNE;
 }
+
+
+void uart_dma_enable_tx(uart_num_t uart_num)
+{
+    uart_reg_t* uart_reg = get_uart_reg(uart_num);
+    if(uart_reg == NULL){
+        return 0;
+    }
+    uart_reg->CR3.bits.DMAT = 1;
+}
+
+void uart_dma_enable_rx(uart_num_t uart_num)
+{
+    uart_reg_t* uart_reg = get_uart_reg(uart_num);
+    if(uart_reg == NULL){
+        return 0;
+    }
+    uart_reg->CR3.bits.DMAR = 1;
+}
+
+void uart_dma_disable_tx(uart_num_t uart_num)
+{
+    uart_reg_t* uart_reg = get_uart_reg(uart_num);
+    if(uart_reg == NULL){
+        return 0;
+    }
+    uart_reg->CR3.bits.DMAT = 0;
+}
+
+void uart_dma_disable_rx(uart_num_t uart_num)
+{
+    uart_reg_t* uart_reg = get_uart_reg(uart_num);
+    if(uart_reg == NULL){
+        return 0;
+    }
+    uart_reg->CR3.bits.DMAR = 0;
+}
