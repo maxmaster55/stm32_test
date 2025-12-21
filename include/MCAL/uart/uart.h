@@ -196,6 +196,7 @@ typedef struct
 
 
 
+uart_reg_t* get_uart_reg(uart_num_t uart_num);
 uart_status_t uart_init(const uart_cfg_t* cfg);
 uart_status_t uart_deinit(uart_num_t uart_num);
 

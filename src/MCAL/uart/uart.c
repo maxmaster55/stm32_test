@@ -7,7 +7,7 @@ extern uint64_t G_ticks;
 static uart_ctx_t uart_ctx[3] = {0};
 
 // helpers 
-static uart_reg_t* get_uart_reg(uart_num_t uart_num){
+uart_reg_t* get_uart_reg(uart_num_t uart_num){
     switch(uart_num){
         case UART_NUM_1:
             return (uart_reg_t*)UART_NUM_1;
