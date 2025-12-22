@@ -51,36 +51,36 @@ void DMA_IRQ_Handler_Generic(HSerial_instance_t *h, dma_cfg_t *cfg)
         // Optional: handle error
     }
 }
-extern HSerial_instance_t h_ser;
-// UART1 TX = DMA2 Stream7
-void DMA2_Stream7_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.tx_dma);
-}
+// extern HSerial_instance_t h_ser;
+// // UART1 TX = DMA2 Stream7
+// void DMA2_Stream7_IRQHandler(void) {
+//     DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.tx_dma);
+// }
 
-// UART1 RX = DMA2 Stream2
-void DMA2_Stream2_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.rx_dma);
-}
+// // UART1 RX = DMA2 Stream2
+// void DMA2_Stream2_IRQHandler(void) {
+//     DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.rx_dma);
+// }
 
-// UART2 TX = DMA1 Stream6
-void DMA1_Stream6_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.tx_dma);
-}
+// // UART2 TX = DMA1 Stream6
+// void DMA1_Stream6_IRQHandler(void) {
+//     DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.tx_dma);
+// }
 
-// UART2 RX = DMA1 Stream5
-void DMA1_Stream5_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.rx_dma);
-}
+// // UART2 RX = DMA1 Stream5
+// void DMA1_Stream5_IRQHandler(void) {
+//     DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.rx_dma);
+// }
 
-// UART6 TX = DMA2 Stream6
-void DMA2_Stream6_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.tx_dma);
-}
+// // UART6 TX = DMA2 Stream6
+// void DMA2_Stream6_IRQHandler(void) {
+//     DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.tx_dma);
+// }
 
-// UART6 RX = DMA2 Stream1
-void DMA2_Stream1_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.rx_dma);
-}
+// // UART6 RX = DMA2 Stream1
+// void DMA2_Stream1_IRQHandler(void) {
+//     DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.rx_dma);
+// }
 
 
 static void init_uart_pins(uart_num_t num)
