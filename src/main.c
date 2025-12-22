@@ -1,52 +1,50 @@
-#include <glob.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <HAL/HSerial/hserial.h>
 #include <MCAL/GPIO/gpio.h>
 #include <MCAL/uart/uart.h>
 #include <MCAL/RCC/rcc.h>
 
-
-volatile int x = 0;
-
-uint8_t src_arr[8] = {0};
+volatile int tx_done = 0;
 
 void tx_do_smth(void){
-    uart_read_receive_buffer(UART_NUM_1, src_arr);
-}
-void rx_do_smth(void){
-    uart_read_receive_buffer(UART_NUM_1, src_arr);
+    tx_done = 1;
 }
 
 HSerial_instance_t h_ser = {
     .type = HSERIAL_TYPE_UART,
-    .uart_cfg.baudrate = 9600,
+    .uart_cfg.baudrate = 115200,
     .uart_cfg.uart_number = UART_NUM_1,
     .uart_cfg.word_length = UART_WORD_LENGTH_8,
     .uart_cfg.parity = UART_PARITY_NONE,
     .uart_cfg.stop_bits = UART_STOP_BITS_1,
     .uart_cfg.tx_callback = tx_do_smth,
-    .uart_cfg.rx_callback = rx_do_smth
+    .uart_cfg.rx_callback = NULL
 };
-
-
-uint8_t tx_data[] = "Tello DMA UART!";
-uint8_t rx_data[32] = {0};
 
 int main(void)
 {
     HSerial_init(&h_ser);
 
-
-
-    // Start RX first
-    HSerial_receive_data(&h_ser, rx_data, sizeof(rx_data));
-
-    HSerial_send_data(&h_ser, tx_data, sizeof(tx_data)-1);
+    uint8_t tx_buffer[32];
+    int counter = 0;
 
     while (1)
     {
-        // Optional: blink an LED to show main is running
-        // Or just loop here
-        x++;
+        // Convert number to string
+        int len = snprintf((char*)tx_buffer, sizeof(tx_buffer), "Count: %d\r\n", counter);
+
+        tx_done = 0;
+        HSerial_send_data(&h_ser, tx_buffer, len);
+
+        // Wait for DMA to finish
+        while(!tx_done) {
+            for (volatile int i = 0; i < 20000; i++);
+        }
+
+        counter++;  // increment for next send
+
+        // Delay ~2 seconds (simple busy loop)
+        for (volatile int i = 0; i < 2000000; i++);
     }
 }
-

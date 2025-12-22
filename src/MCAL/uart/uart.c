@@ -157,18 +157,21 @@ uart_status_t uart_init(const uart_cfg_t* cfg)
     ctx->tx_cb = cfg->tx_callback;
 
 
-    // // enable interrupts if callbacks are set
-    // switch (cfg->uart_num) {
-    // case UART_NUM_1:
-    //     NVIC_EnableIRQ(USART1_IRQn);
-    //     break;
-    // case UART_NUM_2:
-    //     NVIC_EnableIRQ(USART2_IRQn);
-    //     break;
-    // case UART_NUM_6:
-    //     NVIC_EnableIRQ(USART6_IRQn);
-    //     break;
-    // }
+    // enable interrupts if callbacks are set
+    if (ctx->rx_cb || ctx->tx_cb)
+    {
+        switch (cfg->uart_num) {
+        case UART_NUM_1:
+            NVIC_EnableIRQ(USART1_IRQn);
+            break;
+        case UART_NUM_2:
+            NVIC_EnableIRQ(USART2_IRQn);
+            break;
+        case UART_NUM_6:
+            NVIC_EnableIRQ(USART6_IRQn);
+            break;
+        }
+    }
 
     return UART_OK;
 }

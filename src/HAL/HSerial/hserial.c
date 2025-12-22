@@ -5,82 +5,159 @@
 #include <MCAL/NVIC/nvic.h>
 
 
+static HSerial_instance_t *dma_owner[2][8] = {0};
+
+
+static inline uint8_t dma_index(dma_regs_t *dma)
+{
+    return (dma == DMA1) ? 0 : 1;
+}
+
+static void register_dma_owner(HSerial_instance_t *h, dma_cfg_t *cfg)
+{
+    uint8_t d = dma_index(cfg->dma);
+    uint8_t s = cfg->stream_number;
+
+    dma_owner[d][s] = h;
+}
+
 /* Generic DMA IRQ handler */
-void DMA_IRQ_Handler_Generic(HSerial_instance_t *h, dma_cfg_t *cfg)
+static inline void dma_handle_stream_irq(HSerial_instance_t *h, dma_cfg_t *cfg)
 {
     dma_regs_t *dma = cfg->dma;
-    uint32_t stream = cfg->stream_number;
+    uint8_t stream = cfg->stream_number;
 
-    // Determine the correct ISR/IFCR register for this stream
-    volatile uint32_t *ISR;
-    volatile uint32_t *IFCR;
+    /* -------- LOW STREAMS: 0..3 -------- */
+    if (stream <= 3)
+    {
+        dma_LISR_reg_t *isr  = &dma->LISR;
+        dma_LIFCR_reg_t *ifcr = &dma->LIFCR;
 
-    if (stream <= 3) { // low streams
-        ISR = &dma->LISR;
-        IFCR = &dma->LIFCR;
-    } else {          // high streams
-        ISR = &dma->HISR;
-        IFCR = &dma->HIFCR;
+        switch (stream)
+        {
+        case 0:
+            if (isr->bits.TCIF0) {
+                ifcr->bits.CTCIF0 = 1;
+                if (cfg == &h->_dma.tx_dma && h->uart_cfg.tx_callback)
+                    h->uart_cfg.tx_callback();
+                else if (cfg == &h->_dma.rx_dma && h->uart_cfg.rx_callback)
+                    h->uart_cfg.rx_callback();
+            }
+            if (isr->bits.TEIF0)
+                ifcr->bits.CTEIF0 = 1;
+            break;
+
+        case 1:
+            if (isr->bits.TCIF1) {
+                ifcr->bits.CTCIF1 = 1;
+                if (cfg == &h->_dma.tx_dma && h->uart_cfg.tx_callback)
+                    h->uart_cfg.tx_callback();
+                else if (cfg == &h->_dma.rx_dma && h->uart_cfg.rx_callback)
+                    h->uart_cfg.rx_callback();
+            }
+            if (isr->bits.TEIF1)
+                ifcr->bits.CTEIF1 = 1;
+            break;
+
+        case 2:
+            if (isr->bits.TCIF2) {
+                ifcr->bits.CTCIF2 = 1;
+                if (cfg == &h->_dma.tx_dma && h->uart_cfg.tx_callback)
+                    h->uart_cfg.tx_callback();
+                else if (cfg == &h->_dma.rx_dma && h->uart_cfg.rx_callback)
+                    h->uart_cfg.rx_callback();
+            }
+            if (isr->bits.TEIF2)
+                ifcr->bits.CTEIF2 = 1;
+            break;
+
+        case 3:
+            if (isr->bits.TCIF3) {
+                ifcr->bits.CTCIF3 = 1;
+                if (cfg == &h->_dma.tx_dma && h->uart_cfg.tx_callback)
+                    h->uart_cfg.tx_callback();
+                else if (cfg == &h->_dma.rx_dma && h->uart_cfg.rx_callback)
+                    h->uart_cfg.rx_callback();
+            }
+            if (isr->bits.TEIF3)
+                ifcr->bits.CTEIF3 = 1;
+            break;
+        }
     }
+    /* -------- HIGH STREAMS: 4..7 -------- */
+    else
+    {
+        dma_HISR_reg_t *isr  = &dma->HISR;
+        dma_HIFCR_reg_t *ifcr = &dma->HIFCR;
 
-    // FIX THIS: Correct bit calculation for stream
-    uint32_t stream_offset;
-    if (stream <= 3) {
-        stream_offset = stream * 6;  // Each stream uses 6 bits in LISR/LIFCR
-    } else {
-        stream_offset = (stream - 4) * 6;  // Each stream uses 6 bits in HISR/HIFCR
+        switch (stream)
+        {
+        case 4:
+            if (isr->bits.TCIF4) {
+                ifcr->bits.CTCIF4 = 1;
+                if (cfg == &h->_dma.tx_dma && h->uart_cfg.tx_callback)
+                    h->uart_cfg.tx_callback();
+                else if (cfg == &h->_dma.rx_dma && h->uart_cfg.rx_callback)
+                    h->uart_cfg.rx_callback();
+            }
+            if (isr->bits.TEIF4)
+                ifcr->bits.CTEIF4 = 1;
+            break;
+
+        case 5:
+            if (isr->bits.TCIF5) {
+                ifcr->bits.CTCIF5 = 1;
+                if (cfg == &h->_dma.tx_dma && h->uart_cfg.tx_callback)
+                    h->uart_cfg.tx_callback();
+                else if (cfg == &h->_dma.rx_dma && h->uart_cfg.rx_callback)
+                    h->uart_cfg.rx_callback();
+            }
+            if (isr->bits.TEIF5)
+                ifcr->bits.CTEIF5 = 1;
+            break;
+
+        case 6:
+            if (isr->bits.TCIF6) {
+                ifcr->bits.CTCIF6 = 1;
+                if (cfg == &h->_dma.tx_dma && h->uart_cfg.tx_callback)
+                    h->uart_cfg.tx_callback();
+                else if (cfg == &h->_dma.rx_dma && h->uart_cfg.rx_callback)
+                    h->uart_cfg.rx_callback();
+            }
+            if (isr->bits.TEIF6)
+                ifcr->bits.CTEIF6 = 1;
+            break;
+
+        case 7:
+            if (isr->bits.TCIF7) {
+                ifcr->bits.CTCIF7 = 1;
+                if (cfg == &h->_dma.tx_dma && h->uart_cfg.tx_callback)
+                    h->uart_cfg.tx_callback();
+                else if (cfg == &h->_dma.rx_dma && h->uart_cfg.rx_callback)
+                    h->uart_cfg.rx_callback();
+            }
+            if (isr->bits.TEIF7)
+                ifcr->bits.CTEIF7 = 1;
+            break;
+        }
     }
-    
-    uint32_t tc_bit = 1 << (stream_offset + 1);  // TCIFx is bit 1 for each stream
-    uint32_t te_bit = 1 << (stream_offset + 3);  // TEIFx is bit 3 for each stream
-
-    // Transfer Complete
-    if (*ISR & tc_bit) {
-        *IFCR = tc_bit; // clear TC flag
-
-        // Call appropriate callback
-        if (cfg == &h->_dma.tx_dma && h->uart_cfg.tx_callback)
-            h->uart_cfg.tx_callback();
-        else if (cfg == &h->_dma.rx_dma && h->uart_cfg.rx_callback)
-            h->uart_cfg.rx_callback();
-    }
-
-    // Transfer Error
-    if (*ISR & te_bit) {
-        *IFCR = te_bit; // clear TE flag
-        // Optional: handle error
-    }
-}
-extern HSerial_instance_t h_ser;
-// UART1 TX = DMA2 Stream7
-void DMA2_Stream7_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.tx_dma);
 }
 
-// UART1 RX = DMA2 Stream2
-void DMA2_Stream2_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.rx_dma);
+void DMA_IRQ_Handler_Generic(dma_regs_t *dma, uint8_t stream)
+{
+    HSerial_instance_t *h = dma_owner[dma_index(dma)][stream];
+    if (!h) return; // no owner registered, ignore
+
+    dma_cfg_t *cfg = (h->_dma.tx_dma.stream_number == stream) ? &h->_dma.tx_dma : &h->_dma.rx_dma;
+    dma_handle_stream_irq(h, cfg);
 }
 
-// UART2 TX = DMA1 Stream6
-void DMA1_Stream6_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.tx_dma);
-}
-
-// UART2 RX = DMA1 Stream5
-void DMA1_Stream5_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.rx_dma);
-}
-
-// UART6 TX = DMA2 Stream6
-void DMA2_Stream6_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.tx_dma);
-}
-
-// UART6 RX = DMA2 Stream1
-void DMA2_Stream1_IRQHandler(void) {
-    DMA_IRQ_Handler_Generic(&h_ser, &h_ser._dma.rx_dma);
-}
+void DMA2_Stream7_IRQHandler(void) { DMA_IRQ_Handler_Generic(DMA2, 7); }
+void DMA2_Stream2_IRQHandler(void) { DMA_IRQ_Handler_Generic(DMA2, 2); }
+void DMA1_Stream6_IRQHandler(void) { DMA_IRQ_Handler_Generic(DMA1, 6); }
+void DMA1_Stream5_IRQHandler(void) { DMA_IRQ_Handler_Generic(DMA1, 5); }
+void DMA2_Stream6_IRQHandler(void) { DMA_IRQ_Handler_Generic(DMA2, 6); }
+void DMA2_Stream1_IRQHandler(void) { DMA_IRQ_Handler_Generic(DMA2, 1); }
 
 
 static void init_uart_pins(uart_num_t num)
@@ -312,7 +389,6 @@ HSerial_error_t HSerial_init(HSerial_instance_t* h)
         init_uart_gpio_port(h->uart_cfg.uart_number);
         init_uart_pins(h->uart_cfg.uart_number);
         init_uart_rcc(h->uart_cfg.uart_number);
-        enable_dma_nvic(h->uart_cfg.uart_number);
         
         uart_cfg_t uart_cfg = {
             .baud = h->uart_cfg.baudrate,
@@ -320,12 +396,11 @@ HSerial_error_t HSerial_init(HSerial_instance_t* h)
                 .word_length = h->uart_cfg.word_length,
                 .parity = h->uart_cfg.parity,
                 .stop_bits = h->uart_cfg.stop_bits,
-                .rx_callback = h->uart_cfg.rx_callback,
-                .tx_callback = h->uart_cfg.tx_callback
         };
 
         uart_init(&uart_cfg);
         init_uart_dma_rcc(h->uart_cfg.uart_number);
+        enable_dma_nvic(h->uart_cfg.uart_number);
         
         uart_disable_interrupts(h->uart_cfg.uart_number);
         ret = HSERIAL_OK;
@@ -365,6 +440,8 @@ HSerial_error_t HSerial_send_data(
 
     /* Configure TX DMA */
     uart_config_tx_dma(h);
+    register_dma_owner(h, &h->_dma.tx_dma);
+    dma_stream_reset(h->_dma.tx_dma.dma, h->_dma.tx_dma.stream_number);
     dma_init(&h->_dma.tx_dma);
 
     /* Enable UART TX DMA */
@@ -396,6 +473,7 @@ HSerial_error_t HSerial_receive_data(
 
     /* Configure RX DMA */
     uart_config_rx_dma(h);
+    register_dma_owner(h, &h->_dma.rx_dma);
     
     dma_stream_reset(h->_dma.rx_dma.dma, h->_dma.rx_dma.stream_number);
 
