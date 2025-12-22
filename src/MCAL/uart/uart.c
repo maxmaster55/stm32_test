@@ -157,18 +157,18 @@ uart_status_t uart_init(const uart_cfg_t* cfg)
     ctx->tx_cb = cfg->tx_callback;
 
 
-    // enable interrupts if callbacks are set
-    switch (cfg->uart_num) {
-    case UART_NUM_1:
-        NVIC_EnableIRQ(USART1_IRQn);
-        break;
-    case UART_NUM_2:
-        NVIC_EnableIRQ(USART2_IRQn);
-        break;
-    case UART_NUM_6:
-        NVIC_EnableIRQ(USART6_IRQn);
-        break;
-    }
+    // // enable interrupts if callbacks are set
+    // switch (cfg->uart_num) {
+    // case UART_NUM_1:
+    //     NVIC_EnableIRQ(USART1_IRQn);
+    //     break;
+    // case UART_NUM_2:
+    //     NVIC_EnableIRQ(USART2_IRQn);
+    //     break;
+    // case UART_NUM_6:
+    //     NVIC_EnableIRQ(USART6_IRQn);
+    //     break;
+    // }
 
     return UART_OK;
 }
@@ -359,4 +359,23 @@ void uart_dma_disable_rx(uart_num_t uart_num)
         return 0;
     }
     uart_reg->CR3.bits.DMAR = 0;
+}
+
+
+void uart_enable_interrupts(uart_num_t num)
+{
+    uart_reg_t* uart_reg = get_uart_reg(num);
+    if(uart_reg == NULL) return 0;
+
+    uart_reg->CR1.bits.TXEIE = 1;
+    uart_reg->CR1.bits.RXNEIE = 1;
+
+}
+void uart_disable_interrupts(uart_num_t num)
+{
+    uart_reg_t* uart_reg = get_uart_reg(num);
+    if(uart_reg == NULL) return 0;
+
+    uart_reg->CR1.bits.TXEIE = 0;
+    uart_reg->CR1.bits.RXNEIE = 0;
 }

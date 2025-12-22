@@ -18,7 +18,7 @@ void rx_do_smth(void){
 
 HSerial_instance_t h_ser = {
     .type = HSERIAL_TYPE_UART,
-    .uart_cfg.baudrate = 115200,
+    .uart_cfg.baudrate = 9600,
     .uart_cfg.uart_number = UART_NUM_1,
     .uart_cfg.word_length = UART_WORD_LENGTH_8,
     .uart_cfg.parity = UART_PARITY_NONE,
@@ -27,54 +27,26 @@ HSerial_instance_t h_ser = {
     .uart_cfg.rx_callback = rx_do_smth
 };
 
-GPIO_PinConfig_t uart1_tx_pin_cfg = {
-    .port = GPIOA,
-    .pin = 9,
-    .mode = GPIO_MODE_ALTFN,
-    .pull = GPIO_PULL_NO,
-    .alt_function = GPIO_AF7_USART1_2,
-    .speed = GPIO_SPEED_HIGH,
-    .output_type = GPIO_OUTPUT_PUSHPULL
-};
-GPIO_PinConfig_t uart1_rx_pin_cfg = {
-    .port = GPIOA,
-    .pin = 10,
-    .mode = GPIO_MODE_ALTFN,
-    .pull = GPIO_PULL_NO,
-    .alt_function = GPIO_AF7_USART1_2,
-    .speed = GPIO_SPEED_HIGH,
-    .output_type = GPIO_OUTPUT_PUSHPULL
-};
 
-
-uart_cfg_t uart1_test_cfg = {
-    .baud = 9600,
-    .uart_num = UART_NUM_1,
-    .word_length = UART_WORD_LENGTH_8,
-    .parity = UART_PARITY_NONE,
-    .stop_bits = UART_STOP_BITS_1,
-    .tx_callback = tx_do_smth,
-    .rx_callback = rx_do_smth
-} ;
-
+uint8_t tx_data[] = "Tello DMA UART!";
+uint8_t rx_data[32] = {0};
 
 int main(void)
 {
-    rcc_En_clk_preiph(RCC_GPIOA);
-    rcc_En_clk_preiph(RCC_USART1);
-
     HSerial_init(&h_ser);
-    gpio_init(&uart1_tx_pin_cfg);
-    gpio_init(&uart1_rx_pin_cfg);
-    uart_init(&uart1_test_cfg);
-    uart_send_data(UART_NUM_1, "test", 5);
-    uart_receive_data(UART_NUM_1, src_arr, 5);
+
+
+
+    // Start RX first
+    HSerial_receive_data(&h_ser, rx_data, sizeof(rx_data));
+
+    HSerial_send_data(&h_ser, tx_data, sizeof(tx_data)-1);
 
     while (1)
     {
-        // nthin
+        // Optional: blink an LED to show main is running
+        // Or just loop here
         x++;
     }
-    
-    return 0;
 }
+

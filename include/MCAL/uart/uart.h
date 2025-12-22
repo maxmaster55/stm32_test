@@ -220,3 +220,6 @@ void uart_dma_enable_tx(uart_num_t uart_num);
 void uart_dma_enable_rx(uart_num_t uart_num);
 void uart_dma_disable_tx(uart_num_t uart_num);
 void uart_dma_disable_rx(uart_num_t uart_num);
+
+void uart_enable_interrupts(uart_num_t num);
+void uart_disable_interrupts(uart_num_t num);

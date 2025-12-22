@@ -6,7 +6,8 @@
 dma_ret_t dma_init(dma_cfg_t *cfg){
     if (cfg == NULL) return DMA_NOK;
 
-
+    dma_stream_reset(cfg->dma, cfg->stream_number);
+    
     // disable first
     cfg->dma->STREAM[cfg->stream_number].SxCR.bits.EN = 0; 
     while (cfg->dma->STREAM[cfg->stream_number].SxCR.bits.EN);
@@ -45,7 +46,7 @@ dma_ret_t dma_init(dma_cfg_t *cfg){
 
         // increment
         cfg->dma->STREAM[cfg->stream_number].SxCR.bits.MINC = cfg->to_increment;
-        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.PINC = cfg->from_increment;
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.PINC = 0;
         break;
 
     case DMA_DIR_PERIPH_TO_MEM:
@@ -57,7 +58,7 @@ dma_ret_t dma_init(dma_cfg_t *cfg){
         cfg->dma->STREAM[cfg->stream_number].SxM0AR.reg = (uint32_t)cfg->to;
 
         cfg->dma->STREAM[cfg->stream_number].SxCR.bits.MINC = cfg->to_increment;
-        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.PINC = cfg->from_increment;
+        cfg->dma->STREAM[cfg->stream_number].SxCR.bits.PINC = 0;
         break;
     }
 
@@ -82,6 +83,47 @@ dma_ret_t dma_start(dma_regs_t *dma, dma_stream_t stream_number){
 
     return DMA_OK;
 }
+
+dma_ret_t dma_stream_disable(dma_regs_t *dma, dma_stream_t stream_number) {
+    if (dma == NULL) return DMA_NOK;
+    
+    // Disable the stream
+    dma->STREAM[stream_number].SxCR.bits.EN = 0;
+    
+    // Wait for stream to be disabled
+    while (dma->STREAM[stream_number].SxCR.bits.EN);
+    
+    return DMA_OK;
+}
+
+dma_ret_t dma_stream_reset(dma_regs_t *dma, dma_stream_t stream_number) {
+    if (dma == NULL) return DMA_NOK;
+    
+    // Disable first
+    dma_stream_disable(dma, stream_number);
+    
+    // Clear all interrupt flags for this stream
+    if (stream_number <= 3) { // Low stream
+        // Clear TC, HT, TE, DME, FEIFx flags
+        uint32_t mask = 0x3D << (stream_number * 4); // Bits [0,1,2,3,5] for each stream
+        dma->LIFCR.reg = mask;
+    } else { // High stream
+        uint32_t mask = 0x3D << ((stream_number - 4) * 4);
+        dma->HIFCR.reg = mask;
+    }
+    
+    // Reset stream registers to default
+    dma->STREAM[stream_number].SxCR.reg = 0;
+    dma->STREAM[stream_number].SxNDTR.reg = 0;
+    dma->STREAM[stream_number].SxPAR.reg = 0;
+    dma->STREAM[stream_number].SxM0AR.reg = 0;
+    dma->STREAM[stream_number].SxM1AR.reg = 0;
+    dma->STREAM[stream_number].SxFCR.reg = 0x21; // Reset value
+    
+    return DMA_OK;
+}
+
+
 
 dma_ret_t dma_memcpy(uint32_t *src, uint32_t *dst, uint32_t size){
     // test dma memcpy using dma2 stream 0

@@ -84,4 +84,7 @@ typedef enum {
 
 dma_ret_t dma_init(dma_cfg_t *cfg);
 dma_ret_t dma_start(dma_regs_t *dma, dma_stream_t stream_number);
+dma_ret_t dma_stream_disable(dma_regs_t *dma, dma_stream_t stream_number);
+dma_ret_t dma_stream_reset(dma_regs_t *dma, dma_stream_t stream_number);
+
 dma_ret_t dma_memcpy(uint32_t *src, uint32_t *dst, uint32_t size);
