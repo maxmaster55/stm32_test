@@ -26,7 +26,7 @@ typedef struct
             volatile uint32_t BIDIOE        :1;
             volatile uint32_t BIDIMODE      :1;
             volatile uint32_t res0          :16;
-        }bits;
+        };
     }CR_1;
     
     
@@ -45,7 +45,7 @@ typedef struct
             volatile uint32_t BSY           :1;
             volatile uint32_t FRE           :1;
             volatile uint32_t res0          :23;
-        }bits;
+        };
     }SR;
 
         
@@ -56,7 +56,7 @@ typedef struct
         {
             volatile uint32_t DR            :16;
             volatile uint32_t res0          :16;
-        }bits;
+        };
     }DR;
 
 
@@ -67,7 +67,7 @@ typedef struct
         {
             volatile uint32_t CRCPOLY       :16;
             volatile uint32_t res0          :16;
-        }bits;
+        };
     }CRCPR;
 
     union
@@ -77,7 +77,7 @@ typedef struct
         {
             volatile uint32_t RxCRC       :16;
             volatile uint32_t res0          :16;
-        }bits;
+        };
     }RXCRCR;
 
     union
@@ -87,7 +87,7 @@ typedef struct
         {
             volatile uint32_t TxCRC       :16;
             volatile uint32_t res0          :16;
-        }bits;
+        };
     }TXCRCR;
 
 
