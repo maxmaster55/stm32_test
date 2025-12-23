@@ -28,7 +28,23 @@ typedef struct
             volatile uint32_t res0          :16;
         };
     }CR_1;
-    
+
+    union
+    {
+        volatile uint32_t reg;
+        struct
+        {
+            volatile uint32_t RXDMAEN       :1;
+            volatile uint32_t TXDMAEN       :1;
+            volatile uint32_t SSOE          :1;
+            volatile uint32_t res0          :1;
+            volatile uint32_t FRF           :1;
+            volatile uint32_t ERRIE         :1;
+            volatile uint32_t RXNEIE        :1;
+            volatile uint32_t RXNEIE        :1;
+            volatile uint32_t res0          :24;
+        };
+    }CR_2;
     
     union
     {
@@ -75,7 +91,7 @@ typedef struct
         volatile uint32_t reg;
         struct
         {
-            volatile uint32_t RxCRC       :16;
+            volatile uint32_t RxCRC         :16;
             volatile uint32_t res0          :16;
         };
     }RXCRCR;
@@ -85,7 +101,7 @@ typedef struct
         volatile uint32_t reg;
         struct
         {
-            volatile uint32_t TxCRC       :16;
+            volatile uint32_t TxCRC         :16;
             volatile uint32_t res0          :16;
         };
     }TXCRCR;
