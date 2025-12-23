@@ -56,10 +56,22 @@ int main(void)
     gpio_init(&MOSI_pin);
     
     rcc_En_clk_preiph(RCC_SPI1);
-    SPI1->CR_1.BR ;
+    SPI1->CR_1.BR = 1; // slowest speed CLK/256
+    SPI1->CR_1.MSTR = 1; // i am the master now
+
     SPI1->CR_1.BIDIMODE = 0;
     SPI1->CR_1.RXONLY = 0;
-    SPI1->DR.bits.DR = 0xDEAD;
+    SPI1->CR_1.CPOL = 0;
+    SPI1->CR_1.CPHA = 0;
+   
+    SPI1->CR_1.SSM = 1;  // software slave management
+    SPI1->CR_1.SSI = 1;  // internal NSS = HIGH
+
+
+    SPI1->CR_1.SPE = 1; // enable
+
+
+    SPI1->DR.DR = 0xDE;
 
     while (1)
     {

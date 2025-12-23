@@ -41,8 +41,8 @@ typedef struct
             volatile uint32_t FRF           :1;
             volatile uint32_t ERRIE         :1;
             volatile uint32_t RXNEIE        :1;
-            volatile uint32_t RXNEIE        :1;
-            volatile uint32_t res0          :24;
+            volatile uint32_t TXNEIE        :1;
+            volatile uint32_t res1          :24;
         };
     }CR_2;
     
