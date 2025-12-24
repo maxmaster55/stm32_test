@@ -194,6 +194,8 @@ rcc_return_t rcc_reset_periph(rcc_Peripheral_t periph){
 rcc_return_t rcc_enable_LSI()
 {
     RCC->CSR.bits.LSION = 1;
+    while (!RCC->CSR.bits.LSIRDY);
+    return RCC_RES_OK;
 }
 
 rcc_return_t rcc_disable_LSI()
