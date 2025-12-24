@@ -17,6 +17,13 @@
 //     uart_callback_t tx_callback;
 // } uart_cfg_t;
 
+typedef enum {
+    SPI_NUM_1,
+    SPI_NUM_2,
+    SPI_NUM_3,
+    SPI_NUM_4,
+} spi_num_t;
+
 
 typedef enum {
     SPI_MODE_SLAVE = 0,
@@ -68,12 +75,12 @@ typedef enum {
 
 typedef struct
 {
-    SPI_regs_t* spi;             // SPI peripheral base
+    spi_num_t spi_num;              // SPI numbe
 
-    spi_mode_t mode;             // Master or Slave
-    spi_speed_t speed;           // BR[2:0]
-    spi_clock_polarity_t polarity; // CPOL
-    spi_clock_phase_t phase;       // CPHA
+    spi_mode_t mode;                // Master or Slave
+    spi_speed_t speed;              // BR[2:0]
+    spi_clock_polarity_t polarity;  // CPOL
+    spi_clock_phase_t phase;        // CPHA
 
     spi_data_size_t data_size;     // DFF: 8 or 16 bits
     spi_frame_format_t frame_format; // LSBFIRST
@@ -86,7 +93,9 @@ typedef struct
 
 
 void spi_init(const spi_cfg_t* cfg);
+void spi_write(const spi_cfg_t* cfg, uint8_t data);
+void spi_read(const spi_cfg_t* cfg, uint8_t* data);
 
-
-
+void spi_DMA_enable(spi_num_t spi_num);
+void spi_DMA_disable(spi_num_t spi_num);
 

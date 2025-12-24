@@ -3,7 +3,24 @@
 
 void spi_init(const spi_cfg_t* cfg)
 {
-    SPI_regs_t* spi = cfg->spi;
+    SPI_regs_t* spi = NULL;
+    switch (cfg->spi_num)
+    {
+    case SPI_NUM_1:
+        spi = SPI1;
+        break;
+    case SPI_NUM_2:
+        spi = SPI2;
+        break;
+    case SPI_NUM_3:
+        spi = SPI3;
+        break;
+    case SPI_NUM_4:
+        spi = SPI4;
+        break;
+    default:
+        return;
+    }
 
     spi->CR_1.SPE = 0;
 
@@ -47,3 +64,62 @@ void spi_init(const spi_cfg_t* cfg)
 
 
 
+void spi_write(const spi_cfg_t* cfg, uint8_t data)
+{
+    SPI_regs_t* spi = NULL;
+    switch(cfg->spi_num) {
+        case SPI_NUM_1: spi = SPI1; break;
+        case SPI_NUM_2: spi = SPI2; break;
+        case SPI_NUM_3: spi = SPI3; break;
+        case SPI_NUM_4: spi = SPI4; break;
+        default: return;
+    }
+    spi->DR.DR = data;
+}
+
+void spi_read(const spi_cfg_t* cfg, uint8_t* data)
+{
+    SPI_regs_t* spi = NULL;
+    switch(cfg->spi_num) {
+        case SPI_NUM_1: spi = SPI1; break;
+        case SPI_NUM_2: spi = SPI2; break;
+        case SPI_NUM_3: spi = SPI3; break;
+        case SPI_NUM_4: spi = SPI4; break;
+        default: return;
+    }
+    *data = spi->DR.DR;
+}
+
+
+
+void spi_DMA_enable(spi_num_t spi_num)
+{
+    SPI_regs_t* spi = NULL;
+    switch (spi_num)
+    {
+        case SPI_NUM_1: spi = SPI1; break;
+        case SPI_NUM_2: spi = SPI2; break;
+        case SPI_NUM_3: spi = SPI3; break;
+        case SPI_NUM_4: spi = SPI4; break;
+        default: return;
+    }
+
+    spi->CR_2.RXDMAEN = 1; // Enable RX DMA
+    spi->CR_2.TXDMAEN = 1; // Enable TX DMA
+}
+
+void spi_DMA_disable(spi_num_t spi_num)
+{
+    SPI_regs_t* spi = NULL;
+    switch (spi_num)
+    {
+        case SPI_NUM_1: spi = SPI1; break;
+        case SPI_NUM_2: spi = SPI2; break;
+        case SPI_NUM_3: spi = SPI3; break;
+        case SPI_NUM_4: spi = SPI4; break;
+        default: return;
+    }
+
+    spi->CR_2.RXDMAEN = 0; // Disable RX DMA
+    spi->CR_2.TXDMAEN = 0; // Disable TX DMA
+}
