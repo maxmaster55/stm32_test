@@ -42,6 +42,17 @@ GPIO_PinConfig_t MOSI_pin = {
 };
 
 
+spi_cfg_t spi1_cfg = {
+    .spi = SPI1,
+    .mode = SPI_MODE_MASTER,
+    .speed = SPI_SPEED_DIV256,
+    .polarity = SPI_POLARITY_LOW,
+    .phase = SPI_PHASE_1EDGE,
+    .data_size = SPI_DATASIZE_8BIT,
+    .frame_format = SPI_FRAME_MSB_FIRST,
+    .nss = SPI_NSS_SOFT,
+    .protocol = SPI_PROTOCOL_MOTOROLA
+};
 
 // will use spi1 to test
 
@@ -56,25 +67,15 @@ int main(void)
     gpio_init(&MOSI_pin);
     
     rcc_En_clk_preiph(RCC_SPI1);
-    SPI1->CR_1.BR = 1; // slowest speed CLK/256
-    SPI1->CR_1.MSTR = 1; // i am the master now
+    spi_init(&spi1_cfg);
 
-    SPI1->CR_1.BIDIMODE = 0;
-    SPI1->CR_1.RXONLY = 0;
-    SPI1->CR_1.CPOL = 0;
-    SPI1->CR_1.CPHA = 0;
-   
-    SPI1->CR_1.SSM = 1;  // software slave management
-    SPI1->CR_1.SSI = 1;  // internal NSS = HIGH
-
-
-    SPI1->CR_1.SPE = 1; // enable
-
-
-    SPI1->DR.DR = 0xDE;
 
     while (1)
     {
-
+        for (int i = 0; i < 50000; i++)
+        {
+            SPI1->DR.DR = i;   
+        }
+        
     }
 }
