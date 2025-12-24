@@ -188,3 +188,15 @@ rcc_return_t rcc_reset_periph(rcc_Peripheral_t periph){
     
     return RCC_RES_NOK; // something went wrong
 }
+
+
+
+rcc_return_t rcc_enable_LSI()
+{
+    RCC->CSR.bits.LSION = 1;
+}
+
+rcc_return_t rcc_disable_LSI()
+{
+    RCC->CSR.bits.LSION = 0;
+}

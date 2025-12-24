@@ -398,15 +398,15 @@ typedef union
     uint32_t reg;
     struct
     {
-        uint32_t LSIRDYF     :1;
-        uint32_t LSERDYF     :1;
+        uint32_t LSION        :1;
+        uint32_t LSIRDY     :1;
         uint32_t res0        :22;
         uint32_t RMVF        :1;
         uint32_t BORRSTF     :1;
-        uint32_t PINRSTF     :1;
+        uint32_t PADRSTF     :1;
         uint32_t PORRSTF     :1;
         uint32_t SFTRSTF     :1;
-        uint32_t IWDGRSTF    :1;
+        uint32_t WDGRSTF    :1;
         uint32_t WWDGRSTF    :1;
         uint32_t LPWRRSTF    :1;
     } bits;
@@ -596,5 +596,9 @@ rcc_return_t rcc_En_clk_preiph(rcc_Peripheral_t periph);
 rcc_return_t rcc_Dis_clk_preiph(rcc_Peripheral_t periph);
 
 rcc_return_t rcc_reset_periph(rcc_Peripheral_t periph);
+
+rcc_return_t rcc_enable_LSI();
+
+rcc_return_t rcc_disable_LSI();
 
 void test();
