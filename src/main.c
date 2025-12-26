@@ -38,11 +38,11 @@ int main(void)
 {
     rcc_En_clk_preiph(RCC_GPIOA);
 
-    HSerial_init(&h);
+    HSerial_oop_inst_t inst = HSerial_oop_init(&h);
 
-    HSerial_send_data(&h, to_send, 3);
+    inst.send(to_send, 3);
 
-    HSerial_receive_data(&h, to_receive, 3);
+    inst.receive(to_receive, 3);
 
     while (1)
     {

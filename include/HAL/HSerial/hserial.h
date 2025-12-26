@@ -31,6 +31,19 @@ typedef struct {
 } dma_ctx_t;
 
 
+
+typedef void (*HSerial_send_t)(const uint8_t* data, uint32_t length);
+typedef void (*HSerial_receive_t)(uint8_t* data, uint32_t length);
+
+
+typedef struct {
+    bool ok;
+    HSerial_send_t send;
+    HSerial_send_t receive;
+}HSerial_oop_inst_t;
+
+
+
 typedef void (*HSerial_callback_t)(void);
 
 typedef struct {
@@ -62,3 +75,6 @@ HSerial_error_t HSerial_deinit(HSerial_instance_t* h);
 
 HSerial_error_t HSerial_send_data(HSerial_instance_t* h, const uint8_t* data, uint32_t length);
 HSerial_error_t HSerial_receive_data(HSerial_instance_t* h, uint8_t* data, uint32_t length);
+
+// oop test
+HSerial_oop_inst_t HSerial_oop_init(HSerial_instance_t* h);

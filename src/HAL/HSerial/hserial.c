@@ -677,3 +677,56 @@ HSerial_error_t HSerial_receive_data(HSerial_instance_t* h, uint8_t* data, uint3
 
     return HSERIAL_OK;
 }
+
+
+
+
+// just testing the oop stuff
+
+
+static HSerial_instance_t* G_oop_h_inst = NULL;
+
+static void oop_uart_send_wrapper(const uint8_t* data, uint32_t length)
+{
+    HSerial_send_data(G_oop_h_inst, data, length);
+}
+
+
+static void oop_uart_receive_wrapper(uint8_t* data, uint32_t length)
+{
+    HSerial_receive_data(G_oop_h_inst, data, length);
+
+}
+
+static void oop_spi_send_wrapper(const uint8_t* data, uint32_t length)
+{
+    HSerial_send_data(G_oop_h_inst, data, length);
+}
+
+
+static void oop_spi_receive_wrapper(uint8_t* data, uint32_t length) {
+    HSerial_receive_data(G_oop_h_inst, data, length);
+}
+
+
+HSerial_oop_inst_t HSerial_oop_init(HSerial_instance_t* h)
+{
+    HSerial_init(h);
+
+    HSerial_oop_inst_t oop_ret;
+    if (h == NULL){
+        oop_ret.ok = false;
+    }
+    G_oop_h_inst = h;
+    if (h->type == HSERIAL_TYPE_UART)
+    {
+        oop_ret.send = oop_uart_send_wrapper;
+        oop_ret.receive = oop_uart_receive_wrapper;
+    }else{
+        oop_ret.send = oop_spi_send_wrapper;
+        oop_ret.receive = oop_spi_receive_wrapper;
+    }
+    oop_ret.ok = true;
+
+    return oop_ret;
+}
