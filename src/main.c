@@ -1,35 +1,51 @@
 #include <MCAL/GPIO/gpio.h>
 #include <MCAL/RCC/rcc.h>
-#include <MCAL/SPI/spi.h>
-#include <MCAL/WDT/watch_dog.h>
+#include <HAL/HSerial/hserial.h>
 
 
-GPIO_PinConfig_t pin = {
-    .port = GPIOC,
-    .pin = 13,
-    .mode = GPIO_MODE_OUTPUT,
-    .pull = GPIO_PULL_NO,
-    .speed = GPIO_SPEED_HIGH,
-    .output_type = GPIO_OUTPUT_PUSHPULL
+volatile bool tx_done_flag = false;
+volatile bool rx_done_flag = false;
+
+
+void tx_do_smth(){
+    tx_done_flag = true;
+}
+
+void rx_do_smth(){
+    rx_done_flag = true;
+}
+
+
+// will use spi1 to test
+HSerial_instance_t h = {
+    .type = HSERIAL_TYPE_SPI,
+    .spi_cfg = {
+        .spi_num = SPI_NUM_1,
+        .mode = SPI_MODE_MASTER,
+        .speed = SPI_SPEED_DIV128
+    },
+    .rx_callback = rx_do_smth,
+    .tx_callback = tx_do_smth
 };
 
 
-int counter = 0;
+
+uint8_t to_send[3] = {67, 68, 69};
+uint8_t to_receive[3] = {0};
+
+
 int main(void)
-{    
-    rcc_En_clk_preiph(RCC_GPIOC);  
-    gpio_init(&pin);
+{
+    rcc_En_clk_preiph(RCC_GPIOA);
 
+    HSerial_init(&h);
 
-    rcc_enable_LSI();
-    wd_init(10000, WD_PRESCALER_DIV32);
-    
+    HSerial_send_data(&h, to_send, 3);
+
+    HSerial_receive_data(&h, to_receive, 3);
+
     while (1)
     {
-    if (counter == 50000)
-    {
-        gpio_write(GPIOC,13, 1);
-    }
-    counter += 1;
+
     }
 }

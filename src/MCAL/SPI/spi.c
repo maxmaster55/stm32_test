@@ -103,7 +103,6 @@ void spi_DMA_enable(spi_num_t spi_num)
         case SPI_NUM_4: spi = SPI4; break;
         default: return;
     }
-
     spi->CR_2.RXDMAEN = 1; // Enable RX DMA
     spi->CR_2.TXDMAEN = 1; // Enable TX DMA
 }
