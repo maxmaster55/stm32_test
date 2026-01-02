@@ -4,7 +4,7 @@
 typedef struct
 {
 
-    typedef union
+    union
     {
         volatile uint32_t reg;
         volatile struct
@@ -31,7 +31,7 @@ typedef struct
     }CR1;
     
 
-    typedef union
+    union
     {
         volatile uint32_t reg;
         volatile struct
@@ -48,21 +48,22 @@ typedef struct
         
     }CR2;
     
-    typedef union
+    union
     {
         volatile uint32_t reg;
         volatile struct
         {
-            uint32_t ADD0           :1;
-            uint32_t ADD           :9;
+            uint32_t ADD0             :1;
+            uint32_t ADD1_7           :7;
+            uint32_t ADD8_9           :2;
             uint32_t ENDUAL           :1;
-            uint32_t res0           :5;
-            uint32_t ADDMODE           :1;
+            uint32_t res0             :5;
+            uint32_t ADDMODE          :1;
         };
         
     }OAR1;
 
-    typedef union
+    union
     {
         volatile uint32_t reg;
         volatile struct
@@ -74,17 +75,17 @@ typedef struct
         
     }OAR2;
 
-    typedef union
+    union
     {
         volatile uint32_t reg;
         volatile struct
         {
-            uint32_t DR           :1;
+            uint32_t DR           :8;
         };
         
     }DR;
 
-    typedef union
+    union
     {
         volatile uint32_t reg;
         volatile struct
@@ -109,7 +110,7 @@ typedef struct
         
     }SR1;
 
-    typedef union
+    union
     {
         volatile uint32_t reg;
         volatile struct
@@ -129,7 +130,7 @@ typedef struct
     }SR2;
 
 
-    typedef union
+    union
     {
         volatile uint32_t reg;
         volatile struct
@@ -143,7 +144,7 @@ typedef struct
     }CCR;
 
 
-    typedef union
+    union
     {
         volatile uint32_t reg;
         volatile struct
@@ -154,7 +155,7 @@ typedef struct
     }TRISE;
 
 
-    typedef union
+    union
     {
         volatile uint32_t reg;
         volatile struct
