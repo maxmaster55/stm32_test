@@ -16,6 +16,11 @@ typedef enum{
 
 typedef (*i2c_callback) (void);
 
+typedef enum{
+    I2C_OK,
+    I2C_NOK
+} i2c_ret_t;
+
 // inst
 typedef struct
 {

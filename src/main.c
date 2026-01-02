@@ -39,16 +39,7 @@ int main(void)
     ret = gpio_init(&pin_sda);
     i2c_init(&my_cfg);
 
-
-    while (I2C1->SR2.BUSY);
-
-    I2C1->CR1.START = 1;
-    while (!I2C1->SR1.SB);
-
-    I2C1->DR.DR = 0x08 << 1;
-    while (!I2C1->SR1.ADDR);
-    (void)I2C1->SR1.reg;
-    (void)I2C1->SR2.reg;
+    i2c_send(&my_cfg, 0x08, 0x67);
 
     while(1);
 }

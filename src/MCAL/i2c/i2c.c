@@ -69,7 +69,7 @@ static void enable_i2c_pins(i2c_regs_t* i2c)
 }
 
 
-void i2c_init(i2c_cfg_t* cfg)
+i2c_ret_t i2c_init(i2c_cfg_t* cfg)
 {
     if (cfg == NULL) return;
 
@@ -110,24 +110,23 @@ void i2c_init(i2c_cfg_t* cfg)
     // Enable peripheral
     cfg->i2c->CR1.PE = 1;
 
+
+    return I2C_OK;
+
 }
 
 // Send a single byte to a slave
-void i2c_send(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t data)
+i2c_ret_t i2c_send(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t data)
 {
     i2c_regs_t* i2c = cfg->i2c;
 
-    /* 0. Wait until bus is free */
     while (i2c->SR2.BUSY);
 
-    /* 1. Generate START */
     i2c->CR1.START = 1;
 
-    /* 2. Wait for SB */
     while (!i2c->SR1.SB);
 
     (void)i2c->SR1.reg;
-    /* 3. Send address + write */
     i2c->DR.DR = slave_addr << 1;
 
     /* 4. Wait for ADDR or AF */
@@ -137,7 +136,7 @@ void i2c_send(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t data)
     {
         i2c->SR1.AF = 0;
         i2c->CR1.STOP = 1;
-        return;
+        return I2C_NOK;
     }
 
     /* 5. Clear ADDR */
@@ -157,6 +156,8 @@ void i2c_send(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t data)
 
     /* 9. STOP */
     i2c->CR1.STOP = 1;
+
+    return I2C_OK;
 }
 
 void i2c_receive(i2c_cfg_t* cfg, uint8_t* data)
