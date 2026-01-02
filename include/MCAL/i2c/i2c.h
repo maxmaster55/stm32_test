@@ -59,7 +59,7 @@ typedef struct {
     uint16_t  len;
     uint16_t  idx;
     uint8_t   slave_addr;
-
+    bool no_stop;
     i2c_tx_cb_t  tx_done_cb;
     i2c_rx_cb_t  rx_done_cb;
     i2c_err_cb_t error_cb;
@@ -84,6 +84,7 @@ typedef struct
 i2c_ret_t i2c_init(i2c_cfg_t* cfg);
 i2c_ret_t i2c_send(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t *data, uint16_t len);
 i2c_ret_t i2c_receive(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t* data, uint16_t len);
+i2c_ret_t i2c_send_no_stop(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t *data, uint16_t len);
 
 bool i2c_is_busy(i2c_cfg_t* cfg);
 bool i2c_is_error(i2c_cfg_t* cfg);

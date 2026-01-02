@@ -75,9 +75,12 @@ void i2c_inerrupt(i2c_regs_t* i2c)
             i2c->DR.DR = ctx->buf[ctx->idx++];
         else
         {
-            i2c->CR1.STOP = 1;
+            if (!ctx->no_stop)
+                i2c->CR1.STOP = 1;
             ctx->state = I2C_STATE_IDLE;
             if (ctx->tx_done_cb) ctx->tx_done_cb();
+
+            ctx->no_stop = false;   // reset flag for next transfer
         }
         return;
     }
@@ -98,10 +101,13 @@ void i2c_inerrupt(i2c_regs_t* i2c)
         return;
     }
 }
+void I2C1_EV_IRQHandler() { i2c_inerrupt(I2C1); }
+void I2C1_ER_IRQHandler() { i2c_inerrupt(I2C1); }
+void I2C2_EV_IRQHandler() { i2c_inerrupt(I2C2); }
+void I2C2_ER_IRQHandler() { i2c_inerrupt(I2C2); }
+void I2C3_EV_IRQHandler() { i2c_inerrupt(I2C3); }
+void I2C3_ER_IRQHandler() { i2c_inerrupt(I2C3); }
 
-void I2C1_EV_IRQHandler(){ i2c_inerrupt(I2C1); }
-void I2C2_EV_IRQHandler(){ i2c_inerrupt(I2C2); }
-void I2C3_EV_IRQHandler(){ i2c_inerrupt(I2C3); }
 
 // helpers
 static uint32_t get_APB()
@@ -170,9 +176,18 @@ static void enable_i2c_pins(i2c_regs_t* i2c)
 
 static void enable_i2c_nvic(i2c_regs_t* i2c)
 {
-    if (i2c == I2C1) NVIC_EnableIRQ(I2C1_EV_IRQn);
-    else if (i2c == I2C2) NVIC_EnableIRQ(I2C2_EV_IRQn);
-    else if (i2c == I2C3) NVIC_EnableIRQ(I2C3_EV_IRQn);
+    if (i2c == I2C1){
+        NVIC_EnableIRQ(I2C1_EV_IRQn);
+        NVIC_EnableIRQ(I2C1_ER_IRQn);
+    }
+    else if (i2c == I2C2){
+        NVIC_EnableIRQ(I2C2_EV_IRQn);
+        NVIC_EnableIRQ(I2C2_ER_IRQn);
+    }
+    else if (i2c == I2C3){
+        NVIC_EnableIRQ(I2C3_EV_IRQn);
+        NVIC_EnableIRQ(I2C3_ER_IRQn);
+    }
     else while (true);
 }
 
@@ -300,4 +315,24 @@ bool i2c_is_busy(i2c_cfg_t* cfg)
     if (!ctx) return false;
 
     return (ctx->state != I2C_STATE_IDLE);
+}
+
+i2c_ret_t i2c_send_no_stop(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t *data, uint16_t len)
+{
+    if (!cfg || !data || len == 0) return I2C_NOK;
+
+    i2c_ctx_t *ctx = i2c_get_ctx(cfg->i2c);
+    if (!ctx || ctx->state != I2C_STATE_IDLE) return I2C_NOK;
+
+    ctx->buf = data;
+    ctx->len = len;
+    ctx->idx = 0;
+    ctx->slave_addr = slave_addr;
+    ctx->state = I2C_STATE_MASTER_TX;
+    ctx->no_stop = true;   // disable STOP after transmission
+
+    // trigger START, ISR will handle sending the address and data
+    cfg->i2c->CR1.START = 1;
+
+    return I2C_OK;
 }
