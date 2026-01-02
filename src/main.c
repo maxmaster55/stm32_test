@@ -3,43 +3,33 @@
 #include <MCAL/RCC/rcc.h>
 #include <MCAL/i2c/i2c.h>
 
+void tx_do_smth(){
+    while (true);
+}
+
+void rx_do_smth(){
+    while (true);
+}
+
+
 i2c_cfg_t my_cfg = {
     .i2c = I2C1,
     .mode = I2C_MODE_MASTER,
     .freq = 100000U,
-    .my_address = 0x09
-};
-
-GPIO_PinConfig_t pin_scl = {
-    .port = GPIOB,
-    .pin = 6,
-    .mode = GPIO_MODE_ALTFN,
-    .speed = GPIO_SPEED_FAST,
-    .output_type = GPIO_OUTPUT_OPENDRAIN,
-    .pull = GPIO_PULL_UP,
-    .alt_function = GPIO_AF4_I2C1_3
-};
-
-GPIO_PinConfig_t pin_sda= {
-    .port = GPIOB,
-    .pin = 7,
-    .mode = GPIO_MODE_ALTFN,
-    .speed = GPIO_SPEED_FAST,
-    .output_type = GPIO_OUTPUT_OPENDRAIN,
-    .pull = GPIO_PULL_NO,
-    .alt_function = GPIO_AF4_I2C1_3
+    .tx_callback = tx_do_smth,
+    .rx_callback = rx_do_smth
 };
 
 
+uint8_t buff[2] = {};
 int main(void)
 {
     rcc_En_clk_preiph(RCC_GPIOB);
-    gpio_return_t ret;
-    ret = gpio_init(&pin_scl);
-    ret = gpio_init(&pin_sda);
     i2c_init(&my_cfg);
 
-    i2c_send(&my_cfg, 0x08, 0x67);
+    i2c_send(&my_cfg, 0x08, 'y');
+
+    i2c_receive(&my_cfg, 0x08, buff);
 
     while(1);
 }

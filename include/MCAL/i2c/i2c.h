@@ -38,6 +38,6 @@ typedef struct
 
 
 // api
-void i2c_init(i2c_cfg_t* cfg);
-void i2c_send(i2c_cfg_t* cfg, uint8_t address, uint8_t data);
-void i2c_receive(i2c_cfg_t* cfg, uint8_t* data);
+i2c_ret_t i2c_init(i2c_cfg_t* cfg);
+i2c_ret_t i2c_send(i2c_cfg_t* cfg, uint8_t address, uint8_t data);
+i2c_ret_t i2c_receive(i2c_cfg_t* cfg, uint8_t address, uint8_t* data);

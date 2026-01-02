@@ -1,9 +1,12 @@
 #include "glob.h"
 #include <MCAL/GPIO/gpio.h>
 #include <MCAL/RCC/rcc.h>
+#include <MCAL/NVIC/nvic.h>
 #include <MCAL/i2c/i2c.h>
 
 extern rcc_RegDef_t *RCC;
+
+// helpers
 
 static uint32_t get_APB()
 {
@@ -69,12 +72,23 @@ static void enable_i2c_pins(i2c_regs_t* i2c)
 }
 
 
+static void enable_i2c_nvic(i2c_regs_t* i2c)
+{
+    if (i2c == I2C1) NVIC_EnableIRQ(I2C1_EV_IRQn);
+    else if (i2c == I2C2) NVIC_EnableIRQ(I2C2_EV_IRQn);
+    else if (i2c == I2C3) NVIC_EnableIRQ(I2C3_EV_IRQn);
+    else while (true);
+}
+
+
+// api
 i2c_ret_t i2c_init(i2c_cfg_t* cfg)
 {
     if (cfg == NULL) return;
 
     enable_i2c_rcc(cfg->i2c);
-    //enable_i2c_pins(cfg->i2c);
+    enable_i2c_pins(cfg->i2c);
+    enable_i2c_nvic(cfg->i2c);
 
     cfg->i2c->CR1.PE = 0;
 
@@ -129,7 +143,6 @@ i2c_ret_t i2c_send(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t data)
     (void)i2c->SR1.reg;
     i2c->DR.DR = slave_addr << 1;
 
-    /* 4. Wait for ADDR or AF */
     while (!(i2c->SR1.ADDR || i2c->SR1.AF));
 
     if (i2c->SR1.AF)
@@ -139,29 +152,72 @@ i2c_ret_t i2c_send(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t data)
         return I2C_NOK;
     }
 
-    /* 5. Clear ADDR */
     volatile uint32_t tmp;
     tmp = i2c->SR1.reg;
     tmp = i2c->SR2.reg;
     (void)tmp;
 
-    /* 6. Send data */
     i2c->DR.DR = data;
 
-    /* 7. Wait for TXE */
     while (!i2c->SR1.TxE);
 
-    /* 8. Wait for BTF */
     while (!i2c->SR1.BTF);
 
-    /* 9. STOP */
     i2c->CR1.STOP = 1;
 
     return I2C_OK;
 }
 
-void i2c_receive(i2c_cfg_t* cfg, uint8_t* data)
+i2c_ret_t i2c_receive(i2c_cfg_t* cfg, uint8_t slave_addr, uint8_t* data)
 {
+    if (!cfg) return I2C_NOK;
 
+    i2c_regs_t* i2c = cfg->i2c;
+
+    // 0. Wait until bus is free
+    while (i2c->SR2.BUSY);
+
+    // 1. Generate START
+    i2c->CR1.START = 1;
+
+    // 2. Wait for SB (start bit)
+    while (!i2c->SR1.SB);
+
+    (void)i2c->SR1.reg; // clear SB by reading SR1
+
+    // 3. Send slave address + read bit (LSB=1)
+    i2c->DR.DR = (slave_addr << 1) | 0x01;
+
+    // 4. Wait for ADDR or AF
+    while (!(i2c->SR1.ADDR || i2c->SR1.AF));
+
+    if (i2c->SR1.AF) // NACK received
+    {
+        i2c->SR1.AF = 0;
+        i2c->CR1.STOP = 1;
+        return I2C_NOK;
+    }
+
+    // 5. Disable ACK, only one byte to read
+    i2c->CR1.ACK = 0;
+
+    // 6. Clear ADDR by reading SR1 and SR2
+    volatile uint32_t tmp;
+    tmp = i2c->SR1.reg;
+    tmp = i2c->SR2.reg;
+    (void)tmp;
+
+    // 7. Generate STOP
+    i2c->CR1.STOP = 1;
+
+    // 8. Wait for RXNE
+    while (!i2c->SR1.RxNE);
+
+    // 9. Read data
+    *data = i2c->DR.DR;
+
+    // 10. Re-enable ACK for future receptions
+    i2c->CR1.ACK = 1;
+
+    return I2C_OK;
 }
-
