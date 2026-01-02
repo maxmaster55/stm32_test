@@ -1,7 +1,6 @@
+#include "glob.h"
 #include <service/scheduler/sched.h>
 #include <MCAL/systick/systick.h>
-
-#define CLK 16000000UL
 
 static runnable_t* runnable_list[RUNNABLE_MAX];
 extern uint64_t G_ticks;
