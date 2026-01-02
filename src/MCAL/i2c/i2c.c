@@ -4,7 +4,6 @@
 #include <MCAL/NVIC/nvic.h>
 #include <MCAL/i2c/i2c.h>
 
-extern rcc_RegDef_t *RCC;
 
 // helpers
 

@@ -1,6 +1,5 @@
 #include "MCAL/RCC/rcc.h"
 
-volatile rcc_RegDef_t *RCC = (rcc_RegDef_t *) RCC_BASE;
 
 void test(){
     RCC->CIR.bits.LSIRDYIE = 1;

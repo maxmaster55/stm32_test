@@ -500,6 +500,7 @@ typedef struct
 
 
 #define RCC_BASE            (0x40023800UL)
+#define RCC                 ((rcc_RegDef_t *)RCC_BASE)
 
 
 typedef enum{
