@@ -26,81 +26,97 @@ void i2c_inerrupt(i2c_regs_t* i2c)
 
     uint32_t sr1 = i2c->SR1.reg;
 
-    // ----------- ERROR HANDLING -----------
-    if (sr1 & I2C_ERR_MASK)
+    /* ================= ERROR HANDLING ================= */
+    if (sr1 & (I2C_SR1_AF | I2C_SR1_BERR | I2C_SR1_ARLO))
     {
-        i2c->CR1.STOP = 1; // release bus
+        if (sr1 & I2C_SR1_AF)    i2c->SR1.AF   = 0;
+        if (sr1 & I2C_SR1_BERR)  i2c->SR1.BERR = 0;
+        if (sr1 & I2C_SR1_ARLO)  i2c->SR1.ARLO = 0;
+
+        i2c->CR1.STOP = 1;
+        ctx->state = I2C_STATE_IDLE;
+        ctx->no_stop = false;
 
         if (ctx->error_cb)
             ctx->error_cb(sr1);
-
-        if (sr1 & I2C_SR1_AF) { (void)i2c->SR1.reg; i2c->CR1.STOP = 1; }
-        if (sr1 & I2C_SR1_BERR) i2c->SR1.BERR = 0;
-        if (sr1 & I2C_SR1_ARLO) i2c->SR1.ARLO = 0;
-
-        ctx->state = I2C_STATE_IDLE;
         return;
     }
 
-    // ----------- START BIT GENERATED -----------
+    /* ================= START SENT ================= */
     if (sr1 & I2C_SR1_SB)
     {
         if (ctx->state == I2C_STATE_MASTER_TX)
-            i2c->DR.DR = (ctx->slave_addr << 1) | 0;
-        else if (ctx->state == I2C_STATE_MASTER_RX)
+            i2c->DR.DR = (ctx->slave_addr << 1);
+        else
             i2c->DR.DR = (ctx->slave_addr << 1) | 1;
         return;
     }
 
-    // ----------- ADDRESS SENT -----------
+    /* ================= ADDRESS SENT ================= */
     if (sr1 & I2C_SR1_ADDR)
     {
+        /* ---- 1-byte RX FIX (CRITICAL) ---- */
+        if (ctx->state == I2C_STATE_MASTER_RX && ctx->len == 1)
+        {
+            i2c->CR1.ACK = 0;      // disable ACK FIRST
+        }
+
         volatile uint32_t tmp;
         tmp = i2c->SR1.reg;
         tmp = i2c->SR2.reg;
         (void)tmp;
 
-        // RX: if 1 byte, disable ACK now, STOP generated after reading
         if (ctx->state == I2C_STATE_MASTER_RX && ctx->len == 1)
         {
-            i2c->CR1.ACK = 0;
+            i2c->CR1.STOP = 1;     // STOP immediately
         }
         return;
     }
 
-    // ----------- MASTER TX DATA HANDLING -----------
+    /* ================= MASTER TRANSMIT ================= */
     if (ctx->state == I2C_STATE_MASTER_TX && (sr1 & I2C_SR1_TXE))
     {
         if (ctx->idx < ctx->len)
+        {
             i2c->DR.DR = ctx->buf[ctx->idx++];
+        }
         else
         {
-            if (!ctx->no_stop)
+            if (ctx->no_stop)
+            {
+                ctx->state = I2C_STATE_MASTER_RX;
+                ctx->idx = 0;
+                ctx->no_stop = false;
+                i2c->CR1.START = 1;   // repeated START
+            }
+            else
+            {
                 i2c->CR1.STOP = 1;
-            ctx->state = I2C_STATE_IDLE;
-            if (ctx->tx_done_cb) ctx->tx_done_cb();
-
-            ctx->no_stop = false;   // reset flag for next transfer
+                ctx->state = I2C_STATE_IDLE;
+                if (ctx->tx_done_cb)
+                    ctx->tx_done_cb();
+            }
         }
         return;
     }
 
-    // ----------- MASTER RX DATA HANDLING -----------
+    /* ================= MASTER RECEIVE ================= */
     if (ctx->state == I2C_STATE_MASTER_RX && (sr1 & I2C_SR1_RXNE))
     {
         ctx->buf[ctx->idx++] = i2c->DR.DR;
 
         if (ctx->idx == ctx->len)
         {
-            i2c->CR1.STOP = 1;   // STOP after reading last byte
             ctx->state = I2C_STATE_IDLE;
-            i2c->CR1.ACK = 1;    // re-enable ACK for next transfer
+            i2c->CR1.ACK = 1;   // re-enable ACK
             if (ctx->rx_done_cb)
                 ctx->rx_done_cb(ctx->buf, ctx->len);
         }
         return;
     }
 }
+
+
 void I2C1_EV_IRQHandler() { i2c_inerrupt(I2C1); }
 void I2C1_ER_IRQHandler() { i2c_inerrupt(I2C1); }
 void I2C2_EV_IRQHandler() { i2c_inerrupt(I2C2); }
@@ -143,7 +159,7 @@ static void enable_i2c_pins(i2c_regs_t* i2c)
 
     GPIO_PinConfig_t pin_cfg;
     pin_cfg.mode = GPIO_MODE_ALTFN;
-    pin_cfg.pull = GPIO_PULL_NO;
+    pin_cfg.pull = GPIO_PULL_UP;
     pin_cfg.speed = GPIO_SPEED_HIGH;
     pin_cfg.alt_function = GPIO_AF4_I2C1_3;
     pin_cfg.output_type = GPIO_OUTPUT_OPENDRAIN;
@@ -151,8 +167,8 @@ static void enable_i2c_pins(i2c_regs_t* i2c)
     if (i2c == I2C1)
     {
         pin_cfg.alt_function = GPIO_AF4_I2C1_3;
-        pin_cfg.port = GPIOB; pin_cfg.pin = 6; gpio_init(&pin_cfg);
-        pin_cfg.port = GPIOB; pin_cfg.pin = 7; gpio_init(&pin_cfg);
+        pin_cfg.port = GPIOB; pin_cfg.pin = 6; gpio_init(&pin_cfg); // SCL
+        pin_cfg.port = GPIOB; pin_cfg.pin = 7; gpio_init(&pin_cfg); // SDA
     }
     else if (i2c == I2C2)
     {
@@ -216,11 +232,6 @@ i2c_ret_t i2c_init(i2c_cfg_t* cfg)
     
     cfg->i2c->CR1.PE = 0;
 
-    // enable interrupt
-    cfg->i2c->CR2.ITEVTEN = 1;
-    cfg->i2c->CR2.ITBUFEN = 1;
-    cfg->i2c->CR2.ITERREN = 1;
-
     uint8_t is_fast = (cfg->freq > NORMAL_MODE_MAX) ? 1 : 0;
     uint32_t pclk = get_APB();
 
@@ -250,8 +261,12 @@ i2c_ret_t i2c_init(i2c_cfg_t* cfg)
     cfg->i2c->TRISE.TRISE = trise_value;
 
     // Enable peripheral
+    cfg->i2c->CR1.ACK = 1;
     cfg->i2c->CR1.PE = 1;
 
+    cfg->i2c->CR2.ITEVTEN = 1;
+    cfg->i2c->CR2.ITBUFEN = 1;
+    cfg->i2c->CR2.ITERREN = 1;
 
     return I2C_OK;
 
