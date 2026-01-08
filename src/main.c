@@ -1,4 +1,5 @@
 #include "glob.h"
+#include <service/scheduler/sched.h>
 #include <MCAL/GPIO/gpio.h>
 #include <HAL/eeprom/eeprom.h>
 
@@ -11,13 +12,38 @@ eeprom_cfg_t eep_cfg = {
     .A2 = {GPIOB, 2}
 };
 
-volatile char val = 0;
+
+int val = 0;
+
+void edit_val(uint8_t data){
+    val = data;
+}
+
+void tester_cb(void* args){
+
+    if (!eeprom_is_done()) return;
+    eeprom_read(&eep_cfg, 0x00, edit_val);
+}
+
+runnable_t tester = {
+    .name = "tester",
+    .callback = tester_cb,
+    .every = 6,
+    .first_delay = 0,
+    .priority = 2,
+    .args = NULL
+};
+
+
 int main(void)
 {
+    sched_init(1);
     eeprom_init(&eep_cfg);
 
-    eeprom_write_blocking(&eep_cfg, 0x00, 5);
-    val = eeprom_read_blocking(&eep_cfg, 0x00);
+    eeprom_write(&eep_cfg, 0x00, 67, NULL);
+    sched_register(&tester);
+    sched_start();
+
 
     while(1);
 }

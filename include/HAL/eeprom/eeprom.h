@@ -5,6 +5,18 @@
 #include "MCAL/i2c/i2c.h"
 
 
+typedef enum{
+    EEPROM_STATE_IDLE,
+    EEPROM_STATE_WRITING,
+    EEPROM_STATE_READING,
+    EEPROM_STATE_READING_DATA,
+    EEPROM_STATE_CHECKING
+} eeprom_async_state_t;
+
+// async api callbacks
+typedef void (*read_callback_t)(uint8_t data);
+typedef void (*write_callback_t)(void);
+
 typedef struct{
     GPIO_RegDef_t* port; 
     uint8_t pin; 
@@ -27,11 +39,11 @@ void eeprom_init(eeprom_cfg_t* cfg);
 void eeprom_write_blocking(eeprom_cfg_t* cfg, uint8_t mem_addr, uint8_t to_write);
 uint8_t eeprom_read_blocking(eeprom_cfg_t* cfg, uint8_t mem_addr);
 // async api
-void eeprom_write(eeprom_cfg_t* cfg, uint8_t mem_addr, uint8_t to_write);
-uint8_t eeprom_read(eeprom_cfg_t* cfg, uint8_t mem_addr);
+void eeprom_write(eeprom_cfg_t* cfg, uint8_t mem_addr, uint8_t to_write, write_callback_t on_done);
+void eeprom_read(eeprom_cfg_t* cfg, uint8_t mem_addr, read_callback_t on_done);
 void eeprom_write_and_verify(eeprom_cfg_t* cfg, uint8_t mem_addr, uint8_t to_write);
 
-bool eeprom_is_done(eeprom_cfg_t* cfg);
+bool eeprom_is_done();
 
 
 
