@@ -62,7 +62,7 @@ typedef struct
             volatile uint32_t RDERR             :1;
             volatile uint32_t res1              :7;
             volatile uint32_t BSY               :1;
-            volatile uint32_t BSY               :15;
+            volatile uint32_t res2              :15;
         };
         
     } SR;
