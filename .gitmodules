@@ -1,0 +1,3 @@
+[submodule "src/stm32_drivers"]
+	path = src/stm32_drivers
+	url = git@github.com:maxmaster55/stm32_drivers.git
