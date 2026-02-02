@@ -46,12 +46,21 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 64K
-  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 256K
+  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 128K
+
+  FLASH_SECTOR5 (rx) : ORIGIN = 0x08020000, LENGTH = 128K
 }
 
 /* Sections */
 SECTIONS
 {
+  .magic :
+  {
+    . = ALIGN(4);
+    KEEP(*(.magic))
+    KEEP(*(.magic*))
+    . = ALIGN(4);
+  } >FLASH_SECTOR5
   /* The startup code into "FLASH" Rom type memory */
   .isr_vector :
   {
@@ -85,6 +94,9 @@ SECTIONS
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
     . = ALIGN(4);
   } >FLASH
+
+
+
 
   .ARM.extab   : {
     . = ALIGN(4);
