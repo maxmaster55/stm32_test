@@ -48,19 +48,19 @@ MEMORY
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 64K
   FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 128K
 
-  FLASH_SECTOR5 (rx) : ORIGIN = 0x08020000, LENGTH = 128K
+  APP_SECTION (rx) : ORIGIN = 0x08020000, LENGTH = 128K
 }
 
 /* Sections */
 SECTIONS
 {
-  .magic :
+  .app_info (NOLOAD) :
   {
-    . = ALIGN(4);
-    KEEP(*(.magic))
-    KEEP(*(.magic*))
-    . = ALIGN(4);
-  } >FLASH_SECTOR5
+    __app_info_start__ = ORIGIN(APP_SECTION) + LENGTH(APP_SECTION) - 0x100; /* 256 bytes */
+    KEEP(*(.app_info))
+    __app_info_end__ = ORIGIN(APP_SECTION) + LENGTH(APP_SECTION);
+  } > APP_SECTION
+
   /* The startup code into "FLASH" Rom type memory */
   .isr_vector :
   {
